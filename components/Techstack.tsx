@@ -41,7 +41,7 @@ const Badge = ({
       style={{ backgroundColor: bg }}
     >
       {Icon ? (
-        <Icon size={18} />
+        <Icon size={12} />
       ) : (
         <Image
           src={imgSrc as string}
