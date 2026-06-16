@@ -17,7 +17,7 @@ function RandomFact() {
     getFact();
   }, []);
   return (
-    <span>did you know {fact.toLowerCase().slice(0, fact.length - 1)}?</span>
+    <span>did you know {fact.toLowerCase().slice(0, fact.length - 1)}</span>
   );
 }
 

@@ -4,6 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
@@ -117,6 +118,11 @@
   --two: #f0c987;
 }
 
+@theme{
+  --one: #89bd9e;
+  --two: #f0c987;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -130,4 +136,101 @@
 .tc-hide-cursor,
 .tc-hide-cursor * {
   cursor: none !important;
+}
+
+
+/* Moving glass panel behind the active scrollspy button; the # frame on top
+   of it is rendered by <TicTacToeFrame />. */
+.nav-highlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  z-index: 0;
+  background-color: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  pointer-events: none;
+}
+
+/* Pulsing <TicTacToeFrame pulse /> highlight: the rectangle stays put while the
+   corner nubs grow out to the overshoot length and retract, so it oscillates
+   between a normal rectangle and the full tic-tac-toe #. */
+@keyframes ttt-nub-h {
+  0%,
+  100% {
+    transform: scaleX(0.5);
+  }
+  50% {
+    transform: scaleX(1);
+  }
+}
+@keyframes ttt-nub-v {
+  0%,
+  100% {
+    transform: scaleY(0.5);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+.ttt-nub-h {
+  animation: ttt-nub-h 1.2s ease-in-out infinite;
+}
+.ttt-nub-v {
+  animation: ttt-nub-v 1.2s ease-in-out infinite;
+}
+
+/* ReactBits-style <StarBorder />: a glow sweeps along the top and bottom edges
+   in opposite directions, behind the content, like a moving border light. */
+.star-border {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  padding: 1.5px;
+}
+.star-border__glow {
+  position: absolute;
+  width: 200%;
+  height: 50%;
+  opacity: 0;
+  border-radius: 50%;
+  z-index: 0;
+  pointer-events: none;
+  transition: opacity 0.45s ease;
+}
+.star-border--active .star-border__glow {
+  opacity: 1;
+}
+.star-border__glow--bottom {
+  bottom: -11px;
+  right: -50%;
+  animation: star-movement-bottom linear infinite alternate;
+}
+.star-border__glow--top {
+  top: -11px;
+  left: -50%;
+  animation: star-movement-top linear infinite alternate;
+}
+.star-border__content {
+  position: relative;
+  z-index: 1;
+}
+/* Fade in/out within each pass so the loop restart is seamless -> continuous. */
+@keyframes star-movement-bottom {
+  0% {
+    transform: translate(40%, 0%);
+  }
+  100% {
+    transform: translate(-40%, 0%);
+  }
+}
+@keyframes star-movement-top {
+  0% {
+    transform: translate(-40%, 0%);
+  }
+  100% {
+    transform: translate(40%, 0%);
+  }
 }

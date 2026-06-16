@@ -17,11 +17,14 @@ import {
   SiMysql,
   SiPostgresql,
   SiDigitalocean,
+  
 } from "react-icons/si";
 import { FaJava } from "react-icons/fa";
 
 import TargetCursor from "./TargetCursor";
 import Image from "next/image";
+import StarBorder from "./StarBorder";
+import { useTechHover, normalizeTech } from "./TechHoverContext";
 
 
 const Badge = ({
@@ -61,10 +64,10 @@ const TechStack = () => {
     { label: "C", Icon: SiC, bg: "#00599C" },
     { label: "C++", Icon: SiCplusplus, bg: "#00427E" },
     { label: "Python", Icon: SiPython, bg: "#3673A5" },
-    { label: "Java", Icon: FaJava, bg: "#D68A00" },
+    // { label: "Java", Icon: FaJava, bg: "#D68A00" },
     { label: "JavaScript", Icon: SiJavascript, bg: "#323330" },
     { label: "TypeScript", Icon: SiTypescript, bg: "#0277BD" },
-    { label: "Go", Icon: SiGo, bg: "#00ADD8" },
+    // { label: "Go", Icon: SiGo, bg: "#00ADD8" },
     { label: "Next.js", Icon: SiNextdotjs, bg: "#000000" },
     { label: "Express.js", Icon: SiExpress, bg: "#303030" },
     { label: "Zustand", bg: "#111111", imgSrc: "/zustand-plain.svg" },
@@ -75,10 +78,11 @@ const TechStack = () => {
     { label: "MySQL", Icon: SiMysql, bg: "#4A7DB9" },
     { label: "PostgreSQL", Icon: SiPostgresql, bg: "#336791" },
     // { label: "AWS", Icon: SiAmazonaws, bg: "#F29100" },
-    { label: "DigitalOcean", Icon: SiDigitalocean, bg: "#006AFF" },
+    // { label: "DigitalOcean", Icon: SiDigitalocean, bg: "#006AFF" },
   ];
 
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const { hovered } = useTechHover();
 
   return (
     <div>
@@ -93,15 +97,27 @@ const TechStack = () => {
           ref={containerRef}
           className="w-full flex flex-wrap gap-3 p-4 rounded-xl"
         >
-          {stack.map((item) => (
-            <Badge
-              key={item.label}
-              label={item.label}
-              Icon={item.Icon}
-              bg={item.bg}
-              imgSrc={item.imgSrc}
-            />
-          ))}
+          {stack.map((item) => {
+            const active = hovered.has(normalizeTech(item.label));
+            const badge = (
+              <Badge
+                label={item.label}
+                Icon={item.Icon}
+                bg={item.bg}
+                imgSrc={item.imgSrc}
+              />
+            );
+            return (
+              <StarBorder
+                key={item.label}
+                active={active}
+                color="#f0c987"
+                speed="2.5s"
+              >
+                {badge}
+              </StarBorder>
+            );
+          })}
         </div>
       </div>
     </div>

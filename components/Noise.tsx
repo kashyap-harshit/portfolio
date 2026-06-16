@@ -7,6 +7,7 @@ interface NoiseProps {
   patternScaleY?: number;
   patternRefreshInterval?: number;
   patternAlpha?: number;
+  fullScreen?: boolean;
 }
 
 const Noise: React.FC<NoiseProps> = ({
@@ -14,7 +15,8 @@ const Noise: React.FC<NoiseProps> = ({
   patternScaleX = 1,
   patternScaleY = 1,
   patternRefreshInterval = 2,
-  patternAlpha = 15
+  patternAlpha = 15,
+  fullScreen = true
 }) => {
   const grainRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -35,8 +37,8 @@ const Noise: React.FC<NoiseProps> = ({
       canvas.width = canvasSize;
       canvas.height = canvasSize;
 
-      canvas.style.width = '100vw';
-      canvas.style.height = '100vh';
+      canvas.style.width = fullScreen ? '100vw' : '100%';
+      canvas.style.height = fullScreen ? '100vh' : '100%';
     };
 
     const drawGrain = () => {
@@ -70,11 +72,11 @@ const Noise: React.FC<NoiseProps> = ({
       window.removeEventListener('resize', resize);
       window.cancelAnimationFrame(animationId);
     };
-  }, [patternSize, patternScaleX, patternScaleY, patternRefreshInterval, patternAlpha]);
+  }, [patternSize, patternScaleX, patternScaleY, patternRefreshInterval, patternAlpha, fullScreen]);
 
   return (
     <canvas
-      className="pointer-events-none absolute top-0 left-0 h-screen w-screen"
+      className={`pointer-events-none absolute ${fullScreen ? 'top-0 left-0 h-screen w-screen' : 'inset-0 h-full w-full'}`}
       ref={grainRef}
       style={{
         imageRendering: 'pixelated'
