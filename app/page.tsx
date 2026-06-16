@@ -22,6 +22,7 @@ import TechStack from "@/components/Techstack";
 import RandomFact from "@/components/RandomFact";
 import Events from "@/components/Events";
 import Projects from "@/components/Projects";
+import Experience from "@/components/Experience";
 import Blogs from "@/components/Blogs";
 import TicTacToeFrame, { HASH_OVERSHOOT } from "@/components/TicTacToeFrame";
 import { TechHoverProvider } from "@/components/TechHoverContext";
@@ -51,9 +52,10 @@ const meine = Arizonia({
 });
 
 const sections = [
-  { id: "first", label: "EVENTS" },
-  { id: "second", label: "PROJECTS" },
-  { id: "third", label: "BLOGS" },
+  { id: "first", label: "PROJECTS" },
+  { id: "second", label: "EXPERIENCE" },
+  { id: "third", label: "EVENTS" },
+  { id: "fourth", label: "BLOGS" },
 ];
 
 export default function Home() {
@@ -291,13 +293,16 @@ export default function Home() {
         </div>
 
         <div className="overflow-auto" ref={scrollContainerRef}>
-          <div id="first">
-            <Events />
-          </div>
-          <div id="second">
+          <div id="first ">
             <Projects />
           </div>
+          <div id="second">
+            <Experience />
+          </div>
           <div id="third">
+            <Events />
+          </div>
+          <div id="fourth">
             <Blogs />
           </div>
         </div>

@@ -2,11 +2,10 @@
 import React from "react";
 import Noise from "./Noise";
 import { Cinzel, Quicksand } from "next/font/google";
-import Link from "next/link";
-import { FiExternalLink } from "react-icons/fi";
 import TicTacToeFrame from "./TicTacToeFrame";
-import { ProjectData } from "@/data/projects";
+import { ExperienceData } from "@/data/experience";
 import { useTechHover } from "./TechHoverContext";
+
 const jim = Cinzel({
   weight: "600",
   subsets: ["latin"],
@@ -17,12 +16,19 @@ const caveat = Quicksand({
   subsets: ["latin"],
 });
 
-function Project({ title, description, icon, techStack, links }: ProjectData) {
+function ExperienceCard({
+  company,
+  role,
+  location,
+  period,
+  highlights,
+  stack,
+}: ExperienceData) {
   const { setHovered } = useTechHover();
   return (
     <div
       className="relative w-[90%] mb-8"
-      onMouseEnter={() => setHovered(techStack)}
+      onMouseEnter={() => setHovered(stack)}
       onMouseLeave={() => setHovered([])}
     >
       <TicTacToeFrame />
@@ -37,37 +43,37 @@ function Project({ title, description, icon, techStack, links }: ProjectData) {
         />
         <div className="relative">
           <div>
-            <img
-              src={icon}
-              alt={`${title} icon`}
-              className="float-right relative -z-10 h-12 w-12 shrink-0 object-cover border-2 border-[#8b1e3f]"
-            />
             <span
               className={`${jim.className} bg-[#3c153b]/40 title border-b-2 border-[#8b1e3f] border-r-2 text-xl px-2`}
             >
-              {title}
+              {company}
             </span>{" "}
-            <span className={`${caveat.className} px-2`}>{description}</span>
+            <span className={`${caveat.className} px-2`}>
+              {role} · {location}
+            </span>
+            <div></div>
+            <span
+              className={`${caveat.className} px-2  text-xs text-[#f0c987]`}
+            >
+              {period}
+            </span>
           </div>
+
+          <ul
+            className={`${caveat.className} border-t-2 border-[#8b1e3f] p-2 text-sm flex flex-col gap-1.5`}
+          >
+            {highlights.map((h, i) => (
+              <li key={i} className="flex gap-2">
+                <span className="text-[#8b1e3f] select-none">#</span>
+                <span>{h}</span>
+              </li>
+            ))}
+          </ul>
           <div
             className={`${caveat.className} border-t-2 border-[#8b1e3f] p-1 text-sm`}
           >
-            <b>Tech Stack := </b>
-            <i>{techStack.join(", ")}</i>
-          </div>
-          <div className=" h-10 border-t-2 border-[#8b1e3f] flex justify-around items-center text-sm">
-            {links.map((link) => (
-              <div key={link.href}>
-                <Link
-                  href={link.href}
-                  target="_blank"
-                  className="inline-flex items-center gap-1 underline"
-                >
-                  {link.label}
-                  <FiExternalLink className="shrink-0" />
-                </Link>
-              </div>
-            ))}
+            <b>Stack := </b>
+            <i>{stack.join(", ")}</i>
           </div>
         </div>
       </div>
@@ -75,4 +81,4 @@ function Project({ title, description, icon, techStack, links }: ProjectData) {
   );
 }
 
-export default Project;
+export default ExperienceCard;

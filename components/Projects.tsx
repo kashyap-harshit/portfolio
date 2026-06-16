@@ -13,7 +13,7 @@ const meine = Arizonia({
 function Projects() {
   return (
     <div
-      className={` h-screen w-full flex flex-col items-center`}
+      className={` mt-4 w-full flex flex-col items-center border-b  border-[#8b1e3f] pb-4`}
     >
       <span className={`${meine.className} text-4xl mb-4`}>Projects </span>
       {projects.map((project) => (
@@ -22,9 +22,9 @@ function Projects() {
       <Link
         href={GITHUB_PROFILE}
         target="_blank"
-        className="group mt-2 flex flex-col items-center gap-1 text-[#89bd9e] transition-colors hover:text-[#f0c987]"
+        className="group mt-2 flex flex-col items-center gap-1  "
       >
-        <span className="underline underline-offset-4">more projects</span>
+        <span className="underline underline-offset-4">More Projects</span>
         <FiArrowDown className="animate-bounce" />
       </Link>
     </div>

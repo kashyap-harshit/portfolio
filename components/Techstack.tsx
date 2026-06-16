@@ -5,6 +5,8 @@ import {
   SiC,
   SiCplusplus,
   SiPython,
+  SiPytorch,
+  SiNumpy,
   SiJavascript,
   SiTypescript,
   SiGo,
@@ -45,7 +47,7 @@ const Badge = ({
     >
       {Icon ? (
         <Icon size={12} />
-      ) : (
+      ) : imgSrc ? (
         <Image
           src={imgSrc as string}
           alt={label}
@@ -53,7 +55,7 @@ const Badge = ({
           width={100}
           height={100}
         />
-      )}
+      ) : null}
       <span>{label}</span>
     </div>
   );
@@ -64,6 +66,10 @@ const TechStack = () => {
     { label: "C", Icon: SiC, bg: "#00599C" },
     { label: "C++", Icon: SiCplusplus, bg: "#00427E" },
     { label: "Python", Icon: SiPython, bg: "#3673A5" },
+    { label: "PyTorch", Icon: SiPytorch, bg: "#EE4C2C" },
+    { label: "NumPy", Icon: SiNumpy, bg: "#013243" },
+    { label: "librosa", bg: "#5A189A", imgSrc: "/librosa.svg" },
+    { label: "matplotlib", bg: "#11557C", imgSrc: "/matplotlib.svg" },
     // { label: "Java", Icon: FaJava, bg: "#D68A00" },
     { label: "JavaScript", Icon: SiJavascript, bg: "#323330" },
     { label: "TypeScript", Icon: SiTypescript, bg: "#0277BD" },
