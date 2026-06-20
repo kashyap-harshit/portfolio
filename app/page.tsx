@@ -265,13 +265,12 @@ export default function Home() {
 
   useEffect(() => {
     const container = scrollContainerRef.current;
-    if (!container) return;
 
     const handleScroll = () => {
-      const containerRect = container.getBoundingClientRect();
-      // The line halfway down the panel; a section becomes active once its
-      // top crosses this line.
-      const midline = containerRect.top + container.clientHeight / 2;
+      // Section positions are viewport-relative, so the same midline check works
+      // whether the desktop inner column scrolls or the whole window scrolls on
+      // mobile.
+      const midline = window.innerHeight / 2;
 
       let current = sections[0].id;
       for (const s of sections) {
@@ -283,8 +282,13 @@ export default function Home() {
     };
 
     handleScroll();
-    container.addEventListener("scroll", handleScroll, { passive: true });
-    return () => container.removeEventListener("scroll", handleScroll);
+    // Desktop: the right column is its own scroller. Mobile: the page scrolls.
+    container?.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      container?.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
   const scrollTo = (id: string) => {
@@ -292,7 +296,7 @@ export default function Home() {
   };
 
   return (
-    <div className="">
+    <div className="overflow-x-hidden">
       <Aurora
         colorStops={["#3c153b", "#8b1e3f", "#8b1e3f"]}
         blend={0.5}
@@ -300,8 +304,8 @@ export default function Home() {
         speed={0.5}
       />
       <TechHoverProvider>
-        <div className="h-screen w-screen grid grid-cols-2 ">
-          <div className="relative overflow-hidden border-r-1 border-[#8b1e3f]">
+        <div className="w-full min-h-screen flex flex-col md:grid md:grid-cols-2 md:h-screen">
+          <div className="relative md:overflow-hidden border-b md:border-b-0 md:border-r border-[#8b1e3f]">
             <Noise
               patternSize={250}
               patternScaleX={1}
@@ -309,8 +313,8 @@ export default function Home() {
               patternRefreshInterval={2}
               patternAlpha={15}
             />
-            <div className=" h-screen flex flex-col justify-between">
-              <div className="flex justify-center items-center flex-col w-full h-[95vh]">
+            <div className="min-h-screen md:h-screen flex flex-col justify-between">
+              <div className="flex justify-center items-center flex-col w-full md:h-[95vh] py-12 md:py-0">
                 <div className="w-6/7">
                   <div className=" text-center ">
                     <div className="w-full flex flex-col items-center">
@@ -348,7 +352,7 @@ export default function Home() {
                       <div className="relative z-10">
                         {/* Base name */}
                         <p
-                          className={`text-6xl text-[#89bd9e] ${meine.className}`}
+                          className={`text-4xl sm:text-5xl md:text-6xl text-[#89bd9e] ${meine.className}`}
                         >
                           Harshit Kashyap Sarma
                         </p>
@@ -369,7 +373,7 @@ export default function Home() {
 
                       </div>
                       <p
-                        className={`text-xl text-[#89bd9e] mt-4 ${jim.className} font-bold`}
+                        className={`text-base sm:text-lg md:text-xl text-center text-[#89bd9e] mt-4 ${jim.className} font-bold`}
                       >
                         {" "}
                         Audio Technology / Full Stack / AI-ML
@@ -417,8 +421,8 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="overflow-auto" ref={scrollContainerRef}>
-            <div id="first ">
+          <div className="md:overflow-auto" ref={scrollContainerRef}>
+            <div id="first">
               <Projects />
             </div>
             <div id="second">
