@@ -5,6 +5,7 @@ export type ExperienceData = {
   period: string;
   highlights: string[];
   stack: string[];
+  logo?: string;
 };
 
 export const experience: ExperienceData[] = [
@@ -13,6 +14,7 @@ export const experience: ExperienceData[] = [
     role: "Software Development Engineer Intern",
     location: "Bengaluru, India",
     period: "May 2025 – Aug 2025 | Dec 2025 – Present",
+    logo: "/kv.png",
     highlights: [
       "15× latency reduction on file/folder listing APIs across a multi-tenant SaaS platform by architecting a Redis caching layer with TTL-based invalidation, replacing cold database queries on every request.",
       "Built and shipped the official Python SDK (kv-platform) — auto-generated from API specs, published to PyPI with strong typing and secure API-key auth for fast developer integration.",

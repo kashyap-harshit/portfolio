@@ -314,8 +314,35 @@ export default function Home() {
                 <div className="w-6/7">
                   <div className=" text-center ">
                     <div className="w-full flex flex-col items-center">
-                      <div className="relative -mb-20 z-0 mt-12">
-                        <Pfp className="w-40 h-60 object-cover" />
+                      <div
+                        className="relative mb-2 z-0 mt-12 flex items-stretch"
+                        style={{
+                          background:
+                            "url(/pfp-poster-blur.png) center / cover no-repeat",
+                        }}
+                      >
+                        {/* Slatted side bars: equal-width segments, transparent at
+                          the edges (touching the pic and the outside) so the blurred
+                          poster shows through. true = bar, false = gap. */}
+                        <div className="relative z-10 flex items-stretch">
+                          {[false, true, false, true, false].map((bar, i) => (
+                            <div
+                              key={i}
+                              className={`w-1.5 ${bar ? "bg-[#8b1e3f] shadow-lg shadow-black/50" : "bg-transparent"}`}
+                            />
+                          ))}
+                        </div>
+                        <div className="relative z-10 w-40 h-60 shrink-0 border-x-2 border-[#8b1e3f]">
+                          <Pfp className="w-40 h-60 object-cover" />
+                        </div>
+                        <div className="relative z-10 flex items-stretch">
+                          {[false, true, false, true, false].map((bar, i) => (
+                            <div
+                              key={i}
+                              className={`w-1.5 ${bar ? "bg-[#8b1e3f] shadow-lg shadow-black/50" : "bg-transparent"}`}
+                            />
+                          ))}
+                        </div>
                         <TicTacToeFrame />
                       </div>
                       <div className="relative z-10">
@@ -328,16 +355,7 @@ export default function Home() {
                         {/* Recolored copy, clipped to just the centered band that
                           sits over the pfp (pfp is 160px wide → 80px each side
                           of center). Change text-[...] to recolor only this part. */}
-                        <p
-                          aria-hidden
-                          className={`text-6xl text-[#f0c987] ${meine.className} absolute inset-0 pointer-events-none`}
-                          style={{
-                            clipPath:
-                              "inset(0 calc(50% - 80px) 0 calc(50% - 80px))",
-                          }}
-                        >
-                          Harshit Kashyap Sarma
-                        </p>
+
                       </div>
                       <div className="relative z-10">
                         {/* Base underline (original SVG colors) */}
@@ -348,23 +366,7 @@ export default function Home() {
                           width={100}
                           height={100}
                         ></Image>
-                        {/* Recolored copy: the SVG is used as a mask over a solid
-                          color box, so bg-[...] sets the stroke color. Clipped to
-                          the same centered band that sits over the pfp. */}
-                        <div
-                          aria-hidden
-                          className="w-lg h-8 z-10 bg-[#f0c987] absolute inset-0 pointer-events-none"
-                          style={{
-                            clipPath:
-                              "inset(0 calc(50% - 80px) 0 calc(50% - 80px))",
-                            WebkitMaskImage: "url(/stroke3.svg)",
-                            maskImage: "url(/stroke3.svg)",
-                            WebkitMaskSize: "100% 100%",
-                            maskSize: "100% 100%",
-                            WebkitMaskRepeat: "no-repeat",
-                            maskRepeat: "no-repeat",
-                          }}
-                        ></div>
+
                       </div>
                       <p
                         className={`text-xl text-[#89bd9e] mt-4 ${jim.className} font-bold`}
@@ -392,7 +394,7 @@ export default function Home() {
                         btnRefs.current[i] = el;
                       }}
                       onClick={() => scrollTo(s.id)}
-                      className={`${jim.className} relative z-1 cursor-pointer px-5 py-2.5 transition-colors duration-300 ${
+                      className={`${jim.className} relative z-1 cursor-pointer px-5 py-1.5 transition-colors duration-300 ${
                         activeId === s.id ? "text-[#f0c987]" : "text-[#89bd9e]"
                       }`}
                     >
