@@ -127,10 +127,16 @@ export default function Aurora(props: AuroraProps) {
     const ctn = ctnDom.current;
     if (!ctn) return;
 
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const isMobile = window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
+
     const renderer = new Renderer({
       alpha: true,
       premultipliedAlpha: true,
-      antialias: true
+      // Antialiasing is expensive on mobile GPUs and barely visible on a soft
+      // aurora gradient — drop it on phones.
+      antialias: !isMobile,
+      dpr: 1
     });
     const gl = renderer.gl;
     gl.clearColor(0, 0, 0, 0);
@@ -176,25 +182,35 @@ export default function Aurora(props: AuroraProps) {
     const mesh = new Mesh(gl, { geometry, program });
     ctn.appendChild(gl.canvas);
 
+    resize();
+
     let animateId = 0;
+    // Throttle to ~30fps on phones — the full-screen noise shader is the
+    // expensive part, and halving its draw rate roughly halves GPU cost while
+    // staying smooth enough for a background.
+    const frameInterval = isMobile ? 1000 / 30 : 0;
+    let lastRender = 0;
     const update = (t: number) => {
       animateId = requestAnimationFrame(update);
+      if (frameInterval && t - lastRender < frameInterval) return;
+      lastRender = t;
       const { time = t * 0.01, speed = 1.0 } = propsRef.current;
       if (program) {
         program.uniforms.uTime.value = time * speed * 0.1;
         program.uniforms.uAmplitude.value = propsRef.current.amplitude ?? 1.0;
         program.uniforms.uBlend.value = propsRef.current.blend ?? blend;
-        const stops = propsRef.current.colorStops ?? colorStops;
-        program.uniforms.uColorStops.value = stops.map((hex: string) => {
-          const c = new Color(hex);
-          return [c.r, c.g, c.b];
-        });
+        // colorStops are static here; the uniform is set once at init, so we no
+        // longer reallocate Color objects every frame.
         renderer.render({ scene: mesh });
       }
     };
-    animateId = requestAnimationFrame(update);
 
-    resize();
+    if (prefersReduced) {
+      // Render a single static frame, no animation loop.
+      renderer.render({ scene: mesh });
+    } else {
+      animateId = requestAnimationFrame(update);
+    }
 
     return () => {
       cancelAnimationFrame(animateId);

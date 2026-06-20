@@ -66,7 +66,19 @@ const Noise: React.FC<NoiseProps> = ({
 
     window.addEventListener('resize', resize);
     resize();
-    loop();
+
+    // On phones / reduced-motion, animating a 1024x1024 grain every frame on the
+    // CPU is the main source of lag (and there can be many Noise instances on
+    // screen at once). Draw a single static grain frame instead — same look,
+    // zero ongoing cost.
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const isMobile = window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
+
+    if (prefersReduced || isMobile) {
+      drawGrain();
+    } else {
+      loop();
+    }
 
     return () => {
       window.removeEventListener('resize', resize);
