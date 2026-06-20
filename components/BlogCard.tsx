@@ -48,7 +48,7 @@ function BlogCard({ title, excerpt, href, icon, series, count }: BlogData) {
                 className="float-right relative -z-10 h-12 w-12 shrink-0 object-cover border-2 border-[#8b1e3f]"
               />
               <span
-                className={`${jim.className} bg-[#3c153b]/40 title  border-[#8b1e3f] text-xl px-2`}
+                className={`${jim.className} title  border-[#8b1e3f] text-xl px-2`}
               >
                 {title}
               </span>

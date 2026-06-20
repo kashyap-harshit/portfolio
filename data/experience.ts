@@ -38,4 +38,16 @@ export const experience: ExperienceData[] = [
       "PyPI",
     ],
   },
+  {
+    company: "CodeChefVIT",
+    role: "Board Member & Research and Development Lead",
+    location: "Vellore, India",
+    period: "2023 – Present", // placeholder — adjust to your actual tenure
+    highlights: [
+      "Authored the “SynthQuest: Building a VST from Scratch” blog series, breaking down real-time audio DSP and the JUCE plugin pipeline from oscillators to a shippable VST.",
+      "Conducted hands-on audio-programming workshops at local schools, teaching peers and students the fundamentals of sound synthesis and DSP.",
+      "Led the technical execution of Clueminati, CookOff, and DevSoc — flagship hackathons and events with 1000+ combined participants.",
+    ],
+    stack: ["C++", "JUCE", "Audio DSP", "Next.js"],
+  },
 ];

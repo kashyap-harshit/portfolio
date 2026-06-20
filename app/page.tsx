@@ -21,7 +21,7 @@ import {
 } from "next/font/google";
 import TechStack from "@/components/Techstack";
 import RandomFact from "@/components/RandomFact";
-import Events from "@/components/Events";
+import Education from "@/components/Education";
 import Projects from "@/components/Projects";
 import Experience from "@/components/Experience";
 import Blogs from "@/components/Blogs";
@@ -55,7 +55,7 @@ const meine = Arizonia({
 const sections = [
   { id: "first", label: "PROJECTS" },
   { id: "second", label: "EXPERIENCE" },
-  { id: "third", label: "EVENTS" },
+  { id: "third", label: "EDUCATION" },
   { id: "fourth", label: "BLOGS" },
 ];
 
@@ -379,7 +379,7 @@ export default function Home() {
                         Audio Technology / Full Stack / AI-ML
                       </p>
                     </div>
-                    <div className={`${spco.className}`}>
+                    <div className={`${spco.className} `}>
                       <TechStack />
                     </div>
                   </div>
@@ -429,7 +429,7 @@ export default function Home() {
               <Experience />
             </div>
             <div id="third">
-              <Events />
+              <Education />
             </div>
             <div id="fourth">
               <Blogs />
