@@ -21,6 +21,7 @@ function EducationCard({
   location,
   period,
   highlights,
+  projects,
   logo,
 }: EducationData) {
   return (
@@ -66,6 +67,22 @@ function EducationCard({
               </li>
             ))}
           </ul>
+
+          {projects && projects.length > 0 && (
+            <div
+              className={`${caveat.className} border-t-2 border-[#8b1e3f] p-2 text-sm flex flex-col gap-1.5`}
+            >
+              <b className="text-[#f0c987]">Course Projects</b>
+              {projects.map((p, i) => (
+                <div key={i} className="flex gap-2">
+                  <span className="text-[#8b1e3f] select-none">›</span>
+                  <span>
+                    <b>{p.name}</b> — {p.description}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

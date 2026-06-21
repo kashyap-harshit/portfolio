@@ -21,6 +21,7 @@ import {
 } from "next/font/google";
 import TechStack from "@/components/Techstack";
 import RandomFact from "@/components/RandomFact";
+import About from "@/components/About";
 import Education from "@/components/Education";
 import Projects from "@/components/Projects";
 import Experience from "@/components/Experience";
@@ -53,6 +54,7 @@ const meine = Arizonia({
 });
 
 const sections = [
+  { id: "about", label: "ABOUT" },
   { id: "first", label: "PROJECTS" },
   { id: "second", label: "EXPERIENCE" },
   { id: "third", label: "EDUCATION" },
@@ -278,6 +280,20 @@ export default function Home() {
         if (!el) continue;
         if (el.getBoundingClientRect().top <= midline) current = s.id;
       }
+
+      // Pin to the edges: when the scroll area touches the top, highlight the
+      // first section; when it touches the bottom, highlight the last.
+      const scrollTop = container ? container.scrollTop : window.scrollY;
+      const viewport = container ? container.clientHeight : window.innerHeight;
+      const full = container
+        ? container.scrollHeight
+        : document.documentElement.scrollHeight;
+      if (scrollTop <= 8) {
+        current = sections[0].id;
+      } else if (scrollTop + viewport >= full - 8) {
+        current = sections[sections.length - 1].id;
+      }
+
       setActiveId(current);
     };
 
@@ -315,7 +331,7 @@ export default function Home() {
             />
             <div className="min-h-screen md:h-screen flex flex-col justify-between">
               <div className="flex justify-center items-center flex-col w-full md:h-[95vh] py-12 md:py-0">
-                <div className="w-6/7">
+                <div className="">
                   <div className=" text-center ">
                     <div className="w-full flex flex-col items-center">
                       <div
@@ -422,6 +438,9 @@ export default function Home() {
           </div>
 
           <div className="md:overflow-auto" ref={scrollContainerRef}>
+            <div id="about">
+              <About />
+            </div>
             <div id="first">
               <Projects />
             </div>

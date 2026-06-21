@@ -50,4 +50,15 @@ export const experience: ExperienceData[] = [
     ],
     stack: ["C++", "JUCE", "Audio DSP", "Next.js"],
   },
+  {
+    company: "GraVITas '25 — VIT's Tech Fest",
+    role: "Tech Coordinator",
+    location: "Vellore, India",
+    period: "2025", // placeholder — adjust to your actual tenure
+    highlights: [
+      "Oversaw technical operations of GraVITas '25 — one of the largest student-run fests in India with 40,000+ participants and 200+ events — ensuring smooth website and platform performance.",
+      "Led and mentored a team of developers building the portal and admin panel with role-based access for events, logistics, and R&R teams, improving productivity and workflow efficiency.",
+    ],
+    stack: ["Next.js", "TypeScript"],
+  },
 ];

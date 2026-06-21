@@ -4,6 +4,7 @@ export type EducationData = {
   location: string;
   period: string;
   highlights: string[];
+  projects?: { name: string; description: string }[];
   logo?: string;
 };
 
@@ -13,9 +14,9 @@ export const education: EducationData[] = [
     institution: "Universitat Pompeu Fabra (UPF)",
     location: "Barcelona, Spain",
     period: "2026 – Present",
+    logo: "/upf.png",
     highlights: [
-      "Placeholder — add coursework / focus areas (e.g. DSP, music information retrieval, audio ML).",
-      "Placeholder — add research, labs, or notable projects.",
+      "To Be Started"
     ],
   },
   {
@@ -23,9 +24,20 @@ export const education: EducationData[] = [
     institution: "VIT Vellore",
     location: "Vellore, India",
     period: "2023 – 2026",
+    logo: "/vit.png",
     highlights: [
-      "Placeholder — add GPA / honors.",
-      "Placeholder — add relevant coursework or activities (e.g. CodeChefVIT).",
+    ],
+    projects: [
+      {
+        name: "Open-Port Vulnerability Scanner (Machine Learning)",
+        description:
+          "Flags vulnerabilities on exposed, idle open ports — classifying risk with XGBoost and Random Forest models trained on port/service features.",
+      },
+      {
+        name: "Deep Fingerprint (Capstone)",
+        description:
+          "Detects malicious HTTPS connections via a hybrid approach: a rule-based engine paired with a neural network trained on the full feature set that composes a JA3 fingerprint.",
+      },
     ],
   },
 ];
