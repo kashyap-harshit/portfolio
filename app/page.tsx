@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import Aurora from "@/components/Aurora";
 import Image from "next/image";
-import ShapeBlur from "@/components/ShapeBlur";
 import Noise from "@/components/Noise";
 import Pfp from "@/components/Pfp";
 
@@ -331,7 +330,7 @@ export default function Home() {
             />
             <div className="min-h-screen md:h-screen flex flex-col justify-between">
               <div className="flex justify-center items-center flex-col w-full md:h-[95vh] py-12 md:py-0">
-                <div className="">
+                <div className="w-6/7">
                   <div className=" text-center ">
                     <div className="w-full flex flex-col items-center">
                       <div

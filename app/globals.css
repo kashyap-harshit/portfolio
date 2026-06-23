@@ -234,3 +234,30 @@
     transform: translate(40%, 0%);
   }
 }
+
+/* Film-grain flicker: the grain bitmap is generated once, then we just jump it
+   to a handful of offsets. steps(1) makes each segment a hard jump (not a
+   smooth slide), which reads as real noise — and it's a compositor-only
+   transform, so it costs ~no CPU. */
+@keyframes noise-shift {
+  0% { transform: translate(0%, 0%); }
+  10% { transform: translate(-3%, -4%); }
+  20% { transform: translate(-4%, 2%); }
+  30% { transform: translate(3%, -3%); }
+  40% { transform: translate(-2%, 4%); }
+  50% { transform: translate(4%, -2%); }
+  60% { transform: translate(-4%, -3%); }
+  70% { transform: translate(2%, 3%); }
+  80% { transform: translate(-3%, 2%); }
+  90% { transform: translate(3%, -4%); }
+  100% { transform: translate(0%, 0%); }
+}
+.noise-anim {
+  animation: noise-shift 0.7s steps(1) infinite;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .noise-anim {
+    animation: none;
+  }
+}

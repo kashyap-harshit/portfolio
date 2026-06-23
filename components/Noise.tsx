@@ -27,19 +27,7 @@ const Noise: React.FC<NoiseProps> = ({
     const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) return;
 
-    let frame = 0;
-    let animationId: number;
-
     const canvasSize = 1024;
-
-    const resize = () => {
-      if (!canvas) return;
-      canvas.width = canvasSize;
-      canvas.height = canvasSize;
-
-      canvas.style.width = fullScreen ? '100vw' : '100%';
-      canvas.style.height = fullScreen ? '100vh' : '100%';
-    };
 
     const drawGrain = () => {
       const imageData = ctx.createImageData(canvasSize, canvasSize);
@@ -56,43 +44,25 @@ const Noise: React.FC<NoiseProps> = ({
       ctx.putImageData(imageData, 0, 0);
     };
 
-    const loop = () => {
-      if (frame % patternRefreshInterval === 0) {
-        drawGrain();
-      }
-      frame++;
-      animationId = window.requestAnimationFrame(loop);
-    };
-
-    window.addEventListener('resize', resize);
-    resize();
-
-    // On phones / reduced-motion, animating a 1024x1024 grain every frame on the
-    // CPU is the main source of lag (and there can be many Noise instances on
-    // screen at once). Draw a single static grain frame instead — same look,
-    // zero ongoing cost.
-    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const isMobile = window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
-
-    if (prefersReduced || isMobile) {
-      drawGrain();
-    } else {
-      loop();
-    }
-
-    return () => {
-      window.removeEventListener('resize', resize);
-      window.cancelAnimationFrame(animationId);
-    };
+    // Generate the grain ONCE. Movement is done purely with a CSS transform
+    // (see the .noise-anim keyframes), so there's no per-frame pixel work — the
+    // animated "noise" look costs ~no CPU.
+    canvas.width = canvasSize;
+    canvas.height = canvasSize;
+    drawGrain();
   }, [patternSize, patternScaleX, patternScaleY, patternRefreshInterval, patternAlpha, fullScreen]);
+
+  // The canvas is oversized (110%) and offset by -5% so the ±4% transform jumps
+  // never expose an empty edge.
+  const sizeStyle: React.CSSProperties = fullScreen
+    ? { top: '-5vh', left: '-5vw', width: '110vw', height: '110vh' }
+    : { top: '-5%', left: '-5%', width: '110%', height: '110%' };
 
   return (
     <canvas
-      className={`pointer-events-none absolute ${fullScreen ? 'top-0 left-0 h-screen w-screen' : 'inset-0 h-full w-full'}`}
+      className="noise-anim pointer-events-none absolute"
       ref={grainRef}
-      style={{
-        imageRendering: 'pixelated'
-      }}
+      style={{ imageRendering: 'pixelated', ...sizeStyle }}
     />
   );
 };
