@@ -64,6 +64,39 @@ export default function Home() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [activeId, setActiveId] = useState(sections[0].id);
 
+  // Fit-to-height: on desktop the hero panel is a fixed screen, so if its
+  // content is taller than the available space (short viewport / 100% zoom) we
+  // scale it down to fit instead of overflowing or showing a scrollbar.
+  const heroRegionRef = useRef<HTMLDivElement>(null);
+  const heroContentRef = useRef<HTMLDivElement>(null);
+  const [heroScale, setHeroScale] = useState(1);
+
+  useEffect(() => {
+    const region = heroRegionRef.current;
+    const content = heroContentRef.current;
+    if (!region || !content) return;
+    const fit = () => {
+      // Only scale on desktop; mobile lays the page out in normal flow.
+      if (!window.matchMedia("(min-width: 768px)").matches) {
+        setHeroScale(1);
+        return;
+      }
+      const available = region.clientHeight;
+      const natural = content.offsetHeight; // layout height, ignores the transform
+      setHeroScale(natural > 0 ? Math.min(1, available / natural) : 1);
+    };
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(region);
+    ro.observe(content);
+    window.addEventListener("resize", fit);
+    document.fonts?.ready.then(fit);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", fit);
+    };
+  }, []);
+
   // --- Scrollspy highlight (TV-shutter style moving rectangle) ---
   const navRef = useRef<HTMLDivElement>(null);
   const highlightRef = useRef<HTMLDivElement>(null);
@@ -322,6 +355,7 @@ export default function Home() {
         <div className="w-full min-h-screen flex flex-col md:grid md:grid-cols-2 md:h-screen">
           <div className="relative md:overflow-hidden border-b md:border-b-0 md:border-r border-[#8b1e3f]">
             <Noise
+              fullScreen={false}
               patternSize={250}
               patternScaleX={1}
               patternScaleY={1}
@@ -329,12 +363,23 @@ export default function Home() {
               patternAlpha={15}
             />
             <div className="min-h-screen md:h-screen flex flex-col justify-between">
-              <div className="flex justify-center items-center flex-col w-full md:h-[95vh] py-12 md:py-0">
+              <div
+                ref={heroRegionRef}
+                className="flex items-center justify-center w-full md:h-[95vh] md:min-h-0 overflow-hidden py-12 md:py-0"
+              >
+                <div
+                  ref={heroContentRef}
+                  style={{
+                    transform: `scale(${heroScale})`,
+                    transformOrigin: "center center",
+                  }}
+                  className="flex flex-col items-center w-full"
+                >
                 <div className="w-6/7">
                   <div className=" text-center ">
                     <div className="w-full flex flex-col items-center">
                       <div
-                        className="relative mb-2 z-0 mt-12 flex items-stretch"
+                        className="relative mb-2 z-0 mt-4 md:mt-12 flex items-stretch"
                         style={{
                           background:
                             "url(/pfp-poster-blur.png) center / cover no-repeat",
@@ -362,7 +407,9 @@ export default function Home() {
                             />
                           ))}
                         </div>
-                        <TicTacToeFrame />
+                        <div className="absolute inset-0 z-20 pointer-events-none">
+                          <TicTacToeFrame />
+                        </div>
                       </div>
                       <div className="relative z-10">
                         {/* Base name */}
@@ -403,7 +450,11 @@ export default function Home() {
                   ref={navRef}
                   className="scrollspy relative mt-4 flex flex-col items-center gap-2 text-center text-base"
                 >
-                  <div ref={highlightRef} className="nav-highlight" aria-hidden>
+                  <div
+                    ref={highlightRef}
+                    className="nav-highlight hidden md:block"
+                    aria-hidden
+                  >
                     <TicTacToeFrame />
                   </div>
                   {sections.map((s, i) => (
@@ -421,9 +472,10 @@ export default function Home() {
                     </div>
                   ))}
                 </div>
+                </div>
               </div>
               <div
-                className={`${caveat.className}  text-xs text-center w-full text-[#f0c987]`}
+                className={`${caveat.className} hidden md:block text-xs text-center w-full text-[#f0c987]`}
               >
                 <b>random fact := </b>{" "}
                 <i>

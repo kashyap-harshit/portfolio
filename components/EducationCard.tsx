@@ -4,6 +4,7 @@ import Noise from "./Noise";
 import { Cinzel, Quicksand } from "next/font/google";
 import TicTacToeFrame from "./TicTacToeFrame";
 import { EducationData } from "@/data/education";
+import { rich } from "./rich";
 
 const jim = Cinzel({
   weight: "600",
@@ -63,7 +64,7 @@ function EducationCard({
             {highlights.map((h, i) => (
               <li key={i} className="flex gap-2">
                 <span className="text-[#8b1e3f] select-none">#</span>
-                <span>{h}</span>
+                <span>{rich(h)}</span>
               </li>
             ))}
           </ul>
@@ -72,12 +73,12 @@ function EducationCard({
             <div
               className={`${caveat.className} border-t-2 border-[#8b1e3f] p-2 text-sm flex flex-col gap-1.5`}
             >
-              <b className="text-[#f0c987]">Course Projects</b>
+              <b className="text-[#f0c987]">Top Course Projects</b>
               {projects.map((p, i) => (
                 <div key={i} className="flex gap-2">
                   <span className="text-[#8b1e3f] select-none">›</span>
                   <span>
-                    <b>{p.name}</b> — {p.description}
+                    <b>{p.name}</b>: {rich(p.description)}
                   </span>
                 </div>
               ))}

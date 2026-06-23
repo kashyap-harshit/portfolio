@@ -6,6 +6,8 @@ import Link from "next/link";
 import { FiExternalLink } from "react-icons/fi";
 import TicTacToeFrame from "./TicTacToeFrame";
 import { BlogData } from "@/data/blogs";
+import { rich } from "./rich";
+import Image from "next/image";
 
 const jim = Cinzel({
   weight: "600",
@@ -30,7 +32,6 @@ function BlogCard({ title, excerpt, href, icon, series, count }: BlogData) {
       )}
 
       <Link href={href} target="_blank" className="block">
-        <TicTacToeFrame />
         <div className="relative overflow-hidden isolate bg-[#1a0a18]">
           <Noise
             fullScreen={false}
@@ -41,31 +42,32 @@ function BlogCard({ title, excerpt, href, icon, series, count }: BlogData) {
             patternAlpha={35}
           />
           <div className="relative">
-            <div>
-              <img
+            <div className="flex items-start justify-between gap-2 p-1">
+              <div>
+                <span className={`${jim.className} text-xl px-2`}>{title}</span>
+                <FiExternalLink className="inline-block ml-1 shrink-0 align-baseline" />
+                {series && count && (
+                  <div className={`${caveat.className} px-2 py-1 text-xs text-[#f0c987]`}>
+                    {count}-part series
+                  </div>
+                )}
+              </div>
+              <Image
                 src={icon}
                 alt={`${title} icon`}
-                className="float-right relative -z-10 h-12 w-12 shrink-0 object-cover border-2 border-[#8b1e3f]"
+                height={80}
+                width={80}
+                className="shrink-0 -mt-1 -mr-1 h-12 w-12 object-cover border-2 border-[#8b1e3f]"
               />
-              <span
-                className={`${jim.className} title  border-[#8b1e3f] text-xl px-2`}
-              >
-                {title}
-              </span>
-              <FiExternalLink className="inline-block ml-1 shrink-0 align-baseline" />
-              {series && count && (
-                <div className={`${caveat.className} px-2 py-1 text-xs text-[#f0c987]`}>
-                  {count}-part series
-                </div>
-              )}
             </div>
             <p
               className={`${caveat.className} border-t-2 border-[#8b1e3f] p-1 text-sm`}
             >
-              {excerpt}
+              {rich(excerpt)}
             </p>
           </div>
         </div>
+        <TicTacToeFrame />
       </Link>
     </div>
   );

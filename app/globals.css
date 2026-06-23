@@ -261,3 +261,9 @@
     animation: none;
   }
 }
+/* On phones the jumping grain reads as harsh flicker — keep it static there. */
+@media (max-width: 767px) {
+  .noise-anim {
+    animation: none;
+  }
+}

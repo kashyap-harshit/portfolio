@@ -13,7 +13,7 @@ const meine = Arizonia({ subsets: ["latin"], weight: "400" });
 const caveat = Quicksand({ subsets: ["latin"], weight: "400" });
 
 // TODO: replace placeholders with your real links / assets.
-const LINKEDIN = "https://www.linkedin.com/in/your-handle"; // placeholder
+const LINKEDIN = "https://www.linkedin.com/in/heem-sarma/"; // placeholder
 const RESUME = "/resume.pdf"; // drop resume.pdf into /public
 const SONG_SRC = "/something.mp3"; // drop your track into /public
 const SONG_TITLE = "Something - Beatles";
@@ -157,17 +157,18 @@ function About() {
           />
           <div className="relative">
             {/* Top: a few lines about me */}
-            <p className={`${caveat.className} p-3 text-sm leading-relaxed`}>
-              I&apos;m Harshit — an audio-tech and full-stack engineer who likes
-              living where DSP meets machine learning. I build synths and VST
-              plugins, ship multi-tenant backends, and train models for security
-              and sound. Currently heading to UPF Barcelona for a Master&apos;s
-              in Sound &amp; Music Computing.
+            <p className={`${caveat.className} p-3  leading-relaxed`}>
+              I&apos;m Harshit, an <b>audio-tech and full-stack engineer</b> who
+              likes living where <b>DSP meets machine learning</b>. I build
+              synths and VST plugins, ship multi-tenant backends, and train
+              models for security and sound. Right now I&apos;m heading to{" "}
+              <b>UPF Barcelona</b> for a Master&apos;s in{" "}
+              <b>Sound &amp; Music Computing</b>.
             </p>
 
             {/* Bottom: song player (left) + links (right) */}
             <div
-              className={`${caveat.className} border-t-2 border-[#8b1e3f] p-3 flex flex-wrap items-center justify-between gap-4`}
+              className={`${caveat.className} border-t-2 border-[#8b1e3f] p-3 flex flex-wrap items-center justify-center md:justify-between gap-4`}
             >
               <div ref={sentinelRef}>
                 <SongPlayer

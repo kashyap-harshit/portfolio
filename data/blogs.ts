@@ -13,14 +13,14 @@ export const blogs: BlogData[] = [
   {
     title: "Understanding Digital Audio: Sampling, Quantization & Beyond",
     excerpt:
-      "Sound is continuous, but computers are discrete. To store and process audio we sample the waveform at fixed intervals and quantize each sample to a finite set of levels — the single idea that underpins sample rate, bit depth, and the noise floor…",
+      "Sound is continuous, but computers are discrete. To store and process audio we **sample** the waveform at fixed intervals and **quantize** each sample to a finite set of levels. That one idea is what sample rate, bit depth, and the noise floor all come down to.",
     href: "https://medium.com/@vitieeesps/understanding-digital-audio-sampling-quantization-and-beyond-fd69ad589fce",
     icon: "/sps.png",
   },
   {
     title: "Synth Quest",
     excerpt:
-      "A seven-part journey building a synthesizer from the ground up — oscillators, envelopes, filters, and the DSP that ties them together, one post at a time…",
+      "A **seven-part series** on building a synthesizer from the ground up: oscillators, envelopes, filters, and the DSP that ties them together, one post at a time.",
     href: "https://blogs.codechefvit.com/series/synth-quest",
     icon: "/synth-quest.png",
     series: true,

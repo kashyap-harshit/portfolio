@@ -205,8 +205,9 @@ export default function Aurora(props: AuroraProps) {
       }
     };
 
-    if (prefersReduced) {
-      // Render a single static frame, no animation loop.
+    if (prefersReduced || isMobile) {
+      // On phones (and reduced-motion), render a single static frame — a moving
+      // gradient behind the translucent grain reads as background flicker.
       renderer.render({ scene: mesh });
     } else {
       animateId = requestAnimationFrame(update);

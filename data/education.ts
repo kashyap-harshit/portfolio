@@ -31,12 +31,12 @@ export const education: EducationData[] = [
       {
         name: "Open-Port Vulnerability Scanner (Machine Learning)",
         description:
-          "Flags vulnerabilities on exposed, idle open ports — classifying risk with XGBoost and Random Forest models trained on port/service features.",
+          "Flags vulnerabilities on exposed, idle open ports, classifying risk with **XGBoost and Random Forest** models trained on port and service features.",
       },
       {
         name: "Deep Fingerprint (Capstone)",
         description:
-          "Detects malicious HTTPS connections via a hybrid approach: a rule-based engine paired with a neural network trained on the full feature set that composes a JA3 fingerprint.",
+          "Detects **malicious HTTPS connections** via a hybrid approach: a **rule-based engine** paired with a **neural network** trained on the full feature set that composes a **JA3 fingerprint**.",
       },
     ],
   },

@@ -7,6 +7,7 @@ import { FiExternalLink } from "react-icons/fi";
 import TicTacToeFrame from "./TicTacToeFrame";
 import { ProjectData } from "@/data/projects";
 import { useTechHover } from "./TechHoverContext";
+import { rich } from "./rich";
 const jim = Cinzel({
   weight: "600",
   subsets: ["latin"],
@@ -47,7 +48,7 @@ function Project({ title, description, icon, techStack, links }: ProjectData) {
             >
               {title}
             </span>{" "}
-            <span className={`${caveat.className} px-2`}>{description}</span>
+            <span className={`${caveat.className} px-2 text-sm`}>{rich(description)}</span>
           </div>
           <div
             className={`${caveat.className} border-t-2 border-[#8b1e3f] p-1 text-sm`}

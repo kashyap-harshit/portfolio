@@ -5,6 +5,7 @@ import { Cinzel, Quicksand } from "next/font/google";
 import TicTacToeFrame from "./TicTacToeFrame";
 import { ExperienceData } from "@/data/experience";
 import { useTechHover } from "./TechHoverContext";
+import { rich } from "./rich";
 
 const jim = Cinzel({
   weight: "600",
@@ -73,7 +74,7 @@ function ExperienceCard({
             {highlights.map((h, i) => (
               <li key={i} className="flex gap-2">
                 <span className="text-[#8b1e3f] select-none">#</span>
-                <span>{h}</span>
+                <span>{rich(h)}</span>
               </li>
             ))}
           </ul>
