@@ -414,7 +414,7 @@ export default function Home() {
                       <div className="relative z-10">
                         {/* Base name */}
                         <p
-                          className={`text-4xl sm:text-5xl md:text-6xl text-[#89bd9e] ${meine.className}`}
+                          className={`whitespace-nowrap text-3xl sm:text-5xl md:text-6xl text-[#89bd9e] ${meine.className}`}
                         >
                           Harshit Kashyap Sarma
                         </p>
