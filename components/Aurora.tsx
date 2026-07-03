@@ -146,16 +146,30 @@ export default function Aurora(props: AuroraProps) {
 
     let program: Program | undefined;
 
+    // On phones/reduced-motion we draw a single static frame instead of an
+    // animation loop, so any resize must re-draw it — otherwise a bad initial
+    // size (0 while layout settles) leaves the background permanently blank.
+    const staticMode = prefersReduced || isMobile;
+    const renderStatic = () => {
+      if (program) renderer.render({ scene: mesh });
+    };
+
     function resize() {
       if (!ctn) return;
       const width = ctn.offsetWidth;
       const height = ctn.offsetHeight;
+      if (!width || !height) return;
       renderer.setSize(width, height);
       if (program) {
         program.uniforms.uResolution.value = [width, height];
+        if (staticMode) renderStatic();
       }
     }
     window.addEventListener('resize', resize);
+    // Re-run resize (and, in static mode, re-render) whenever the container
+    // actually gets/changes size — this wins the initial-layout race on mobile.
+    const ro = new ResizeObserver(() => resize());
+    ro.observe(ctn);
 
     const geometry = new Triangle(gl);
     if (geometry.attributes.uv) {
@@ -216,6 +230,7 @@ export default function Aurora(props: AuroraProps) {
     return () => {
       cancelAnimationFrame(animateId);
       window.removeEventListener('resize', resize);
+      ro.disconnect();
       if (ctn && gl.canvas.parentNode === ctn) {
         ctn.removeChild(gl.canvas);
       }

@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { FiVolume2, FiVolumeX } from "react-icons/fi";
 import TicTacToeFrame from "./TicTacToeFrame";
+import Noise from "./Noise";
 import { useMuted, setMuted, toggleMuted } from "./muteStore";
 
 /**
@@ -31,6 +32,10 @@ export default function MuteToggle() {
       aria-pressed={muted}
       className="fixed top-4 left-4 z-[9998] grid place-items-center h-10 w-10 text-[#f0c987] hover:text-[#89bd9e] transition-colors"
     >
+      {/* grain background, clipped to the button box (frame overshoot stays) */}
+      <span className="pointer-events-none absolute inset-0 -z-10 overflow-hidden bg-[#1a0a18]/50">
+        <Noise fullScreen={false} patternAlpha={35} />
+      </span>
       <TicTacToeFrame />
       {muted ? <FiVolumeX className="h-5 w-5" /> : <FiVolume2 className="h-5 w-5" />}
     </button>

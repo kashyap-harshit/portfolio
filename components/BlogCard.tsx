@@ -32,7 +32,7 @@ function BlogCard({ title, excerpt, href, icon, series, count }: BlogData) {
       )}
 
       <Link href={href} target="_blank" className="block">
-        <div className="relative overflow-hidden isolate bg-[#1a0a18]">
+        <div className="relative overflow-hidden isolate bg-background">
           <Noise
             fullScreen={false}
             patternSize={250}

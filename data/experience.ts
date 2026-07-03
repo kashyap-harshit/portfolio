@@ -16,7 +16,7 @@ export const experience: ExperienceData[] = [
     location: "Bengaluru, India",
     period: "May 2025 – Aug 2025 | Dec 2025 – Present",
     logo: "/kv.png",
-    website: "https://knowledgeverse.ai",
+    website: "https://k-v.ai",
     highlights: [
       "**15× faster** file/folder listing across the multi-tenant platform via a Redis caching layer with TTL-based invalidation.",
       "Built and published the official **Python SDK** (kv-platform) to PyPI — auto-generated, strongly typed, with secure API-key auth.",
