@@ -4,6 +4,8 @@ import {
   Geist_Mono,
 } from "next/font/google";
 import "./globals.css";
+import SnareCursor from "@/components/SnareCursor";
+import MuteToggle from "@/components/MuteToggle";
 
 
 const geistSans = Geist({
@@ -34,6 +36,8 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased dark`}
       >
+        <SnareCursor />
+        <MuteToggle />
         {children}
       </body>
     </html>

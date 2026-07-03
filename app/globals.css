@@ -261,9 +261,10 @@
     animation: none;
   }
 }
-/* On phones the jumping grain reads as harsh flicker — keep it static there. */
+/* On phones the fast grain jumps read as harsh flicker, so run the same shift
+   at a slower cadence — still alive, but easier on the eyes. */
 @media (max-width: 767px) {
   .noise-anim {
-    animation: none;
+    animation: noise-shift 1.6s steps(1) infinite;
   }
 }

@@ -353,7 +353,7 @@ export default function Home() {
       />
       <TechHoverProvider>
         <div className="w-full min-h-screen flex flex-col md:grid md:grid-cols-2 md:h-screen">
-          <div className="relative md:overflow-hidden border-b md:border-b-0 md:border-r border-[#8b1e3f]">
+          <div className="relative overflow-hidden border-b md:border-b-0 md:border-r border-[#8b1e3f]">
             <Noise
               fullScreen={false}
               patternSize={250}
@@ -448,7 +448,7 @@ export default function Home() {
                 </div>
                 <div
                   ref={navRef}
-                  className="scrollspy relative mt-4 flex flex-col items-center gap-2 text-center text-base"
+                  className="scrollspy relative mt-4 flex flex-row flex-wrap md:flex-col items-center justify-center gap-x-1 gap-y-1 md:gap-2 text-center text-sm md:text-base"
                 >
                   <div
                     ref={highlightRef}
@@ -464,8 +464,8 @@ export default function Home() {
                         btnRefs.current[i] = el;
                       }}
                       onClick={() => scrollTo(s.id)}
-                      className={`${jim.className} relative z-1 cursor-pointer px-5 py-1.5 transition-colors duration-300 ${
-                        activeId === s.id ? "text-[#f0c987]" : "text-[#89bd9e]"
+                      className={`${jim.className} relative z-1 cursor-pointer px-3 md:px-5 py-1.5 underline underline-offset-4 md:no-underline transition-colors duration-300 text-[#89bd9e] ${
+                        activeId === s.id ? "md:text-[#f0c987]" : ""
                       }`}
                     >
                       {s.label}

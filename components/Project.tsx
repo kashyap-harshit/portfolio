@@ -44,7 +44,7 @@ function Project({ title, description, icon, techStack, links }: ProjectData) {
               className="float-right relative -z-10 h-12 w-12 shrink-0 object-cover border-2 border-[#8b1e3f]"
             />
             <span
-              className={`${jim.className} bg-[#3c153b]/40 title border-b-2 border-[#8b1e3f] border-r-2 text-xl px-2`}
+              className={`${jim.className} bg-[#3c153b]/40 title border-[#8b1e3f] md:border-b-2 md:border-r-2 text-xl px-2`}
             >
               {title}
             </span>{" "}

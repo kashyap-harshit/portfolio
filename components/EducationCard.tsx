@@ -47,7 +47,7 @@ function EducationCard({
               />
             )}
             <span
-              className={`${jim.className} bg-[#3c153b]/40 title border-b-2 border-[#8b1e3f] border-r-2 text-xl px-2`}
+              className={`${jim.className} bg-[#3c153b]/40 title border-[#8b1e3f] md:border-b-2 md:border-r-2 text-xl px-2`}
             >
               {institution}
             </span>{" "}

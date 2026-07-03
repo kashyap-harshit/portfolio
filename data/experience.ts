@@ -6,6 +6,7 @@ export type ExperienceData = {
   highlights: string[];
   stack: string[];
   logo?: string;
+  website?: string;
 };
 
 export const experience: ExperienceData[] = [
@@ -15,14 +16,14 @@ export const experience: ExperienceData[] = [
     location: "Bengaluru, India",
     period: "May 2025 – Aug 2025 | Dec 2025 – Present",
     logo: "/kv.png",
+    website: "https://knowledgeverse.ai",
     highlights: [
-      "**15× latency reduction** on file/folder listing APIs across a multi-tenant SaaS platform by architecting a **Redis caching layer** with TTL-based invalidation, replacing cold database queries on every request.",
-      "Built and shipped the **official Python SDK** (kv-platform), auto-generated from API specs and published to **PyPI** with strong typing and secure API-key auth for fast developer integration.",
-      "Migrated the entire backend from **sync to async** (boto3 → aioboto3, sequential handlers → asyncio.gather()) across **18 files**, eliminating event-loop blocking under concurrent load and cutting report-generation time via parallel S3 downloads.",
-      "**Zero payment incidents** post-launch on an end-to-end **Stripe integration**: dynamic plan selection, Payment Intents, webhook handlers for real-time subscription state, and a responsive Stripe.js frontend.",
-      "**100% of auth flows secured** (zero credential-leak incidents) via Google and Microsoft **OAuth SSO** using Authorization Code Flow with **PKCE** across Next.js and FastAPI, supporting multi-tenant authentication.",
-      "**Serverless upload pipeline** for 100% of user files, built with **AWS Lambda and S3** with webhook-driven asynchronous downstream processing, removing server-management overhead.",
-      "Expanded ingestion to **Google Drive and OneDrive/SharePoint** with fine-grained permissions, encrypted uploads, and robust retry/rate-limit handling via the Drive API, Picker API, and Azure APIs.",
+      "**15× faster** file/folder listing across the multi-tenant platform via a Redis caching layer with TTL-based invalidation.",
+      "Built and published the official **Python SDK** (kv-platform) to PyPI — auto-generated, strongly typed, with secure API-key auth.",
+      "Migrated the backend from **sync to async** (boto3 → aioboto3) across 18 files, removing event-loop blocking and speeding up report generation.",
+      "Shipped an end-to-end **Stripe integration** — dynamic plans, Payment Intents, subscription webhooks — with zero payment incidents.",
+      "Secured all auth flows with Google & Microsoft **OAuth SSO** (Authorization Code Flow + PKCE) across Next.js and FastAPI.",
+      "Built a **serverless upload pipeline** on AWS Lambda + S3, extended to Google Drive and OneDrive/SharePoint with encrypted uploads and retry handling.",
     ],
     stack: [
       "Python",
@@ -44,12 +45,13 @@ export const experience: ExperienceData[] = [
     location: "Vellore, India",
     period: "2025 – Present", // placeholder, adjust to your actual tenure
     highlights: [
-      "Authored the *“SynthQuest: Building a VST from Scratch”* blog series, breaking down real-time audio DSP and the JUCE plugin pipeline from oscillators to a shippable VST.",
-      "Conducted hands-on **audio-programming workshops** at local schools, teaching peers and students the fundamentals of sound synthesis and DSP.",
-      "Led the technical execution of **Clueminati, CookOff, and DevSoc**, flagship hackathons and events with **1000+ combined participants**.",
+      "Authored the *“SynthQuest: Building a VST from Scratch”* blog series on real-time audio DSP and the JUCE plugin pipeline.",
+      "Ran hands-on **audio-programming workshops** at local schools, teaching the fundamentals of sound synthesis and DSP.",
+      "Led the technical execution of **Clueminati, CookOff, and DevSoc** — flagship hackathons with **1000+ combined participants**.",
     ],
     stack: ["Next.js","TypeScript", "MongoDB",  "C++", "JUCE", "Audio DSP", ],
-    logo: "cc.png"
+    logo: "cc.png",
+    website: "https://www.codechefvit.com",
   },
   {
     company: "GraVITas '25, VIT's Tech Fest",
@@ -57,9 +59,11 @@ export const experience: ExperienceData[] = [
     location: "Vellore, India",
     period: "2025", // placeholder, adjust to your actual tenure
     highlights: [
-      "Oversaw technical operations of GraVITas '25, one of the largest student-run fests in India with **40,000+ participants** and **200+ events**, keeping the website and platforms running smoothly.",
-      "Led and mentored a **team of developers** building the portal and admin panel with **role-based access** for events, logistics, and R&R teams, improving productivity and workflow efficiency.",
+      "Oversaw technical operations of GraVITas '25, one of India's largest student-run fests with **40,000+ participants** and **200+ events**.",
+      "Led and mentored a **team of developers** building the portal and admin panel with role-based access for events, logistics, and R&R.",
     ],
     stack: ["Next.js", "TypeScript", "TanStack", "Axios"],
+    logo: "/gravitas.png",
+    website: "https://gravitas.vit.ac.in",
   },
 ];

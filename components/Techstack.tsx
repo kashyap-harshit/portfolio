@@ -113,7 +113,7 @@ const TechStack = () => {
         />
         <div
           ref={containerRef}
-          className="w-full flex flex-wrap gap-2 p-2 justify-center rounded-xl"
+          className="reticle-zone w-full flex flex-wrap gap-2 p-2 justify-center rounded-xl"
         >
           {stack.map((item) => {
             const active = all || hovered.has(normalizeTech(item.label));

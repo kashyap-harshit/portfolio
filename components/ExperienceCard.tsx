@@ -6,6 +6,8 @@ import TicTacToeFrame from "./TicTacToeFrame";
 import { ExperienceData } from "@/data/experience";
 import { useTechHover } from "./TechHoverContext";
 import { rich } from "./rich";
+import Link from "next/link";
+import { FiExternalLink } from "react-icons/fi";
 
 const jim = Cinzel({
   weight: "600",
@@ -25,6 +27,7 @@ function ExperienceCard({
   highlights,
   stack,
   logo,
+  website,
 }: ExperienceData) {
   const { setHovered } = useTechHover();
   return (
@@ -53,9 +56,19 @@ function ExperienceCard({
               />
             )}
             <span
-              className={`${jim.className} bg-[#3c153b]/40 title border-b-2 border-[#8b1e3f] border-r-2 text-xl px-2`}
+              className={`${jim.className} bg-[#3c153b]/40 title border-[#8b1e3f] md:border-b-2 md:border-r-2 text-xl px-2`}
             >
               {company}
+              {website && (
+                <Link
+                  href={website}
+                  target="_blank"
+                  aria-label={`${company} website`}
+                  className="ml-1.5 inline-flex align-baseline text-[#f0c987] hover:text-[#89bd9e] transition-colors"
+                >
+                  <FiExternalLink className="inline h-4 w-4" />
+                </Link>
+              )}
             </span>{" "}
             <span className={`${caveat.className} px-2`}>
               {role} · {location}

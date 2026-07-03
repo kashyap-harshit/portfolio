@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Noise from "./Noise";
+import { useMuted } from "./muteStore";
 import TicTacToeFrame from "./TicTacToeFrame";
 import SongPlayer from "./SongPlayer";
 import { Arizonia, Quicksand } from "next/font/google";
@@ -20,6 +21,9 @@ const SONG_TITLE = "Something - Beatles";
 
 // How long the floating player lingers after you pause it (ms).
 const LINGER_MS = 5000;
+
+// How long the first-visit song prompt stays up before auto-dismissing (s).
+const WARNING_SECONDS = 5;
 
 const links = [
   { label: "LinkedIn", href: LINKEDIN, Icon: FaLinkedin },
@@ -45,6 +49,11 @@ function About() {
   // localStorage). The visitor chooses Play (a gesture, so sound is allowed) or
   // declines.
   const [showWarning, setShowWarning] = useState(false);
+  // Seconds left before the prompt auto-dismisses on its own.
+  const [countdown, setCountdown] = useState(WARNING_SECONDS);
+
+  // Global mute (shared with the snare cursor via the mute store).
+  const muted = useMuted();
 
   const floatingShown = scrolledPast && (playing || lingering);
 
@@ -118,6 +127,28 @@ function About() {
       /* localStorage unavailable — just skip the modal */
     }
   }, []);
+
+  // While the prompt is up, tick a countdown and auto-dismiss it at zero.
+  useEffect(() => {
+    if (!showWarning) return;
+    setCountdown(WARNING_SECONDS);
+    const id = setInterval(() => {
+      setCountdown((c) => {
+        if (c <= 1) {
+          clearInterval(id);
+          setShowWarning(false);
+          return 0;
+        }
+        return c - 1;
+      });
+    }, 1000);
+    return () => clearInterval(id);
+  }, [showWarning]);
+
+  // Keep the shared <audio> element in sync with the global mute toggle.
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.muted = muted;
+  }, [muted]);
 
   const acceptPlay = () => {
     audioRef.current?.play().catch(() => {});
@@ -197,10 +228,11 @@ function About() {
         </div>
       </div>
 
-      {/* Floating corner player — flies into the top-left while playing (and
-          scrolled past the card), lingers 5s after a pause, then fades away. */}
+      {/* Floating corner player — flies in just right of the mute button (top-
+          left) while playing and scrolled past the card, lingers 5s after a
+          pause, then fades away. Sits on the same level as the mute button. */}
       <div
-        className={`fixed -top-1 -left-1 z-50 transition-all duration-200 ease-linear ${
+        className={`fixed top-4 left-20 z-50 flex h-10 items-center transition-all duration-200 ease-linear ${
           floatingShown
             ? "opacity-100 translate-y-0 pointer-events-auto"
             : "opacity-0 -translate-y-24 pointer-events-none"
@@ -225,6 +257,9 @@ function About() {
             <TicTacToeFrame />
             <p className={`${caveat.className} text-lg text-[#89bd9e]`}>
               I have a song for you :)
+            </p>
+            <p className={`${caveat.className} mt-2 text-sm text-[#f0c987]/70`}>
+              closing in {countdown}s
             </p>
             <div className="mt-5 flex flex-col flex-wrap justify-center gap-4">
               <button
