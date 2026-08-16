@@ -113,8 +113,8 @@ export default function SnareCursor() {
             .to(sticks, { y: 4, duration: 0.05, ease: "power2.in" })
             .to(sticks, { y: 0, duration: 0.4, ease: "elastic.out(1, 0.5)" });
         }
-        // linger ~3s, then fade away gradually
-        gsap.to(el, { opacity: 0, duration: 0.9, delay: 3, ease: "power2.in", onComplete: () => el.remove() });
+        // linger ~1s, then fade away gradually
+        gsap.to(el, { opacity: 0, duration: 0.9, delay: 1, ease: "power2.in", onComplete: () => el.remove() });
       };
 
       const onTap = (e: MouseEvent) => {

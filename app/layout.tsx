@@ -6,6 +6,7 @@ import {
 import "./globals.css";
 import SnareCursor from "@/components/SnareCursor";
 import MuteToggle from "@/components/MuteToggle";
+import TelegramTracker from "@/components/TelegramTracker";
 
 
 const geistSans = Geist({
@@ -36,6 +37,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased dark`}
       >
+        <TelegramTracker />
         <SnareCursor />
         <MuteToggle />
         {children}

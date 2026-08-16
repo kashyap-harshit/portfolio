@@ -9,6 +9,7 @@ import { Arizonia, Quicksand } from "next/font/google";
 import { FaLinkedin, FaGithub } from "react-icons/fa";
 import { FiFileText } from "react-icons/fi";
 import { GITHUB_PROFILE } from "@/data/projects";
+import { trackCustomEvent } from "@/lib/telegramTracker";
 
 const meine = Arizonia({ subsets: ["latin"], weight: "400" });
 const caveat = Quicksand({ subsets: ["latin"], weight: "400" });
@@ -73,6 +74,7 @@ function About() {
       setPlaying(true);
       clearLinger();
       setLingering(false);
+      trackCustomEvent("Song Played", SONG_TITLE);
     };
     const onPause = () => {
       setPlaying(false);
@@ -216,6 +218,7 @@ function About() {
                     key={label}
                     href={href}
                     target="_blank"
+                    onClick={() => trackCustomEvent(`${label} Clicked`, href)}
                     className="inline-flex items-center gap-1.5 underline underline-offset-4 hover:text-[#f0c987] transition-colors"
                   >
                     <Icon className="shrink-0 text-base" />
