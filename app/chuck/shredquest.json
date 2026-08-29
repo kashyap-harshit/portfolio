@@ -1,0 +1,968 @@
+[
+  {
+    "title": "Chapter 00: Getting ChucK running",
+    "blocks": [
+      {
+        "type": "text",
+        "content": "Welcome to ShredQuest, a series where we build a groovebox from scratch in ChucK. If\nyou write code but have never touched audio, this is written for you. No music theory,\nno DSP maths you have to take on faith.\n\nQuick word on why ChucK and not something you already know. In most languages, audio is\nsomething you hand to a callback and hope for the best. Your code runs, a buffer gets\nfilled, and the actual timing of things is somebody else's problem. ChucK does the\nopposite. Time is a value you control directly, down to the individual sample, and that\nturns out to change how you think about the whole problem.\n\nBy the end of this series you'll have a working groovebox: multiple tracks, a synth\nvoice you wrote yourself, patterns you can edit while the music is still playing. We'll\nget there one chapter at a time, and every chapter adds to the same file.\n\n### Installing it\n\nGrab the release from [chuck.stanford.edu/release](https://chuck.stanford.edu/release/).\nThere are installers for macOS and Windows, and on Linux you can build from source or\nuse your package manager. This series is written against **ChucK 1.5.5.7** or newer.\nThat matters more than you'd think, and I'll explain why in chapter 4.\n\nYou get two things. `chuck` is the command-line compiler and virtual machine.\n**miniAudicle** is a small editor with a run button and a console, which is nicer while\nyou're learning. Use whichever you prefer; everything here works in both.\n\nCheck it worked:"
+      },
+      {
+        "type": "terminal",
+        "content": "chuck --version",
+        "meta": {}
+      },
+      {
+        "type": "text",
+        "content": "You should see the version number, your platform, and the audio driver it picked. If\nyou see a version, you're done.\n\n### Your first file\n\nMake a file called `groovebox.ck`. That `.ck` extension is what ChucK source files use.\nThis one file is the thing we'll grow across the whole series."
+      },
+      {
+        "type": "chuck",
+        "content": "// a sine wave, straight into the speakers\nSinOsc osc => dac;\n440 => osc.freq;\n2::second => now;",
+        "meta": {
+          "file": "groovebox.ck",
+          "verified": true
+        }
+      },
+      {
+        "type": "text",
+        "content": "Run it:"
+      },
+      {
+        "type": "terminal",
+        "content": "chuck groovebox.ck",
+        "meta": {}
+      },
+      {
+        "type": "hear",
+        "content": "A clean 440 Hz tone for exactly two seconds, then silence and the program exits. Not two\nseconds and a bit. Exactly two.",
+        "meta": {
+          "caption": null
+        }
+      },
+      {
+        "type": "text",
+        "content": "Four lines and there's already a lot going on, so we'll pull it apart properly in the\nnext chapter. For now just notice that `=>` shows up three times doing what look like\nthree completely different jobs, and that the program ended on its own without you\ntelling it to stop.\n\n### If you hear nothing\n\nRun `chuck --probe`. It lists every audio device ChucK can see, each with a number. Pick\nthe one you actually want and pass it in:"
+      },
+      {
+        "type": "terminal",
+        "content": "chuck --dac2 groovebox.ck",
+        "meta": {}
+      },
+      {
+        "type": "note",
+        "content": "There's also `chuck --silent`, which runs your program with no audio device at all.\nUseless for hearing things, very useful when you only want to check that the code\ncompiles and the timing is right. I use it constantly.",
+        "meta": {
+          "caption": null
+        }
+      },
+      {
+        "type": "text",
+        "content": "---"
+      }
+    ],
+    "yaml": {
+      "part": "one",
+      "eyebrow": "Episode 00",
+      "next": "01"
+    }
+  },
+  {
+    "title": "Chapter 01: Time is a variable",
+    "blocks": [
+      {
+        "type": "text",
+        "content": "This is the one idea that makes ChucK different from every language you already know.\nEverything else in the series sits on top of it, so it gets its own chapter before we\nmake a single interesting sound.\n\nIn ChucK there is a built-in variable called `now`. It holds the current time. And\nhere's the part that breaks people: **your program's time does not move unless you move\nit.** There's no clock ticking in the background that your code is racing against. You\nassign to `now`, and time advances by that much.\n\nLet's prove it. `<<< ... >>>` is ChucK's print statement."
+      },
+      {
+        "type": "chuck",
+        "content": "<<< \"the time is\", now/second, \"seconds\" >>>;\n1::second => now;\n<<< \"the time is\", now/second, \"seconds\" >>>;\n0.5::second => now;\n<<< \"the time is\", now/second, \"seconds\" >>>;",
+        "meta": {
+          "file": "groovebox.ck",
+          "verified": true
+        }
+      },
+      {
+        "type": "output",
+        "content": "the time is 0.000000 seconds\nthe time is 1.000000 seconds\nthe time is 1.500000 seconds",
+        "meta": {}
+      },
+      {
+        "type": "ruler",
+        "content": "0.0s | print | hit\n0.5s |  |\n1.0s | print | hit\n1.5s | print | hit",
+        "meta": {
+          "caption": "where now sits after each line"
+        }
+      },
+      {
+        "type": "text",
+        "content": "Three prints, and the gaps between them are exact. Not \"roughly a second, depending on\nscheduler load\". Exactly a second, because you said so.\n\n### The two operators\n\nTwo bits of syntax are doing the work here.\n\n`=>` is the **chuck operator**, and it's where the language gets its name. It sends the\nthing on the left to the thing on the right. If you're used to `x = 5`, ChucK writes\nthat as `5 => x`. Left to right, matching the direction the data actually flows. It\nreads oddly for about a day and then it's fine.\n\n`::` builds a **duration**. It multiplies a number by a unit of time. So `1::second` is\na duration of one second, and `250::ms` is a duration of 250 milliseconds. The units\nbuilt into the language are `samp`, `ms`, `second`, `minute`, `hour`, `day` and `week`.\n\nThat first one is the interesting one. `samp` is the duration of a single audio sample,\nwhich means you can write:"
+      },
+      {
+        "type": "chuck",
+        "content": "<<< \"samplerate:\", second/samp, \"samples per second\" >>>;\n<<< \"one 1/8 note at 120bpm =\", (0.25::second)/ms, \"ms\" >>>;\n1::samp => now;\n<<< \"advanced one sample; now =\", now/samp, \"samples\" >>>;",
+        "meta": {
+          "file": "groovebox.ck",
+          "verified": true
+        }
+      },
+      {
+        "type": "output",
+        "content": "samplerate: 48000.000000 samples per second\none 1/8 note at 120bpm = 250.000000 ms\nadvanced one sample; now = 1.000000 samples",
+        "meta": {}
+      },
+      {
+        "type": "text",
+        "content": "You just stepped your program forward by one sample. At 48kHz that's about 21\nmicroseconds. This is the resolution you get to work at, and it's the reason people call\nChucK **strongly-timed**.\n\nNotice also that dividing a duration by a duration gives you a plain number, which is\nhow `now/second` printed nicely. Durations are a real type with real arithmetic, not\njust integers you've agreed to treat as milliseconds.\n\n### Loops advance time too\n\nA loop that advances time is the shape almost everything in this series will take."
+      },
+      {
+        "type": "chuck",
+        "content": "0 => int beat;\n\nwhile( beat < 4 )\n{\n    <<< \"beat\", beat, \"at\", now/second, \"sec\" >>>;\n    0.5::second => now;\n    beat++;\n}",
+        "meta": {
+          "file": "groovebox.ck",
+          "verified": true
+        }
+      },
+      {
+        "type": "output",
+        "content": "beat 0 at 0.000000 sec\nbeat 1 at 0.500000 sec\nbeat 2 at 1.000000 sec\nbeat 3 at 1.500000 sec",
+        "meta": {}
+      },
+      {
+        "type": "text",
+        "content": "That's a metronome at 120 bpm, and it will not drift. Ever. Not after four beats, not\nafter four hours. The time between beats isn't the result of a sleep call that got close\nenough, it's the definition of when the next iteration happens."
+      },
+      {
+        "type": "note",
+        "content": "**The mistake everyone makes once.** Write a `while(true)` loop with no time advance in\nit and ChucK will hang. Not crash, hang. From the language's point of view you've\nwritten a loop that runs an infinite amount of code in zero time, which is exactly what\nyou asked for.\n\nThe VM notices and prints a stall warning after a couple of seconds. When you see it,\nthe fix is always the same: something in that loop needs to advance `now`.",
+        "meta": {
+          "caption": null
+        }
+      },
+      {
+        "type": "text",
+        "content": "### Why this matters beyond ChucK\n\nIf you take one thing from this series, take this chapter. Every real-time audio system\nhas to answer the question \"what happens between now and the next buffer\", and most of\nthem answer it by making you fill a block of samples in a callback while carefully not\ndoing anything slow. ChucK answers it by making time explicit in the language.\n\nOnce you've written code this way, the callback model in JUCE or the scheduling in\nSuperCollider stops feeling arbitrary. You'll recognise what they're working around.\nWe'll come back to that properly in the last chapter.\n\n---"
+      }
+    ],
+    "yaml": {
+      "part": "one",
+      "eyebrow": "Episode 01",
+      "prev": "00",
+      "next": "02"
+    }
+  },
+  {
+    "title": "Chapter 02: Making a sound",
+    "blocks": [
+      {
+        "type": "text",
+        "content": "Now that time makes sense, we can put something in it. This chapter is about unit\ngenerators, which are the building blocks every audio system is made of, and about that\n`=>` operator doing a second job.\n\nA **unit generator**, usually shortened to UGen, is an object that produces or processes\naudio. An oscillator is a UGen. A filter is a UGen. Your speakers are a UGen, called\n`dac`. You build sound by connecting them into a chain, and `=>` is how you connect\nthem."
+      },
+      {
+        "type": "chuck",
+        "content": "SinOsc osc => dac;\n440 => osc.freq;\n0.5 => osc.gain;\n2::second => now;",
+        "meta": {
+          "file": "groovebox.ck",
+          "verified": true
+        }
+      },
+      {
+        "type": "text",
+        "content": "Line by line. `SinOsc osc` declares a sine oscillator called `osc`, and chucking it into\n`dac` patches its output to your speakers. `440 => osc.freq` sets its frequency to 440\nHz. `0.5 => osc.gain` halves its volume, where 1.0 is full scale. Then we advance time\nby two seconds, and during those two seconds the whole chain is running and producing\nsamples.\n\nThat last point is the one to sit with. The oscillator isn't producing sound because of\nthe line that created it. It produces sound during the line that advances time. No time\nadvance, no audio. This is why chapter 1 came first."
+      },
+      {
+        "type": "hear",
+        "content": "Same 440 Hz tone as chapter 0, now at half volume. A pure sine is a slightly dull sound,\nwhich is deliberate; it's the reference point everything else gets compared against.",
+        "meta": {
+          "caption": null
+        }
+      },
+      {
+        "type": "text",
+        "content": "### Chains are longer than two\n\nA sine wave has exactly one frequency in it, so there's nothing for a filter to remove.\nLet's switch to a sawtooth, which has plenty, and put a low-pass filter in the middle of\nthe chain."
+      },
+      {
+        "type": "chuck",
+        "content": "SawOsc osc => LPF filter => dac;\n110 => osc.freq;\n0.3 => osc.gain;\n2000 => filter.freq;\n2 => filter.Q;\n2::second => now;",
+        "meta": {
+          "file": "groovebox.ck",
+          "verified": true
+        }
+      },
+      {
+        "type": "text",
+        "content": "You can chain the whole thing in one line, declaring the filter inline as you go. Signal\nflows left to right: oscillator into filter into speakers.\n\n`LPF` is a low-pass filter, meaning it lets low frequencies through and cuts high ones.\n`filter.freq` is the cutoff, the point above which things start getting removed.\n`filter.Q` is resonance, which emphasises frequencies right at the cutoff. Higher Q,\nmore of that vocal, whistling quality."
+      },
+      {
+        "type": "hear",
+        "content": "A buzzy low note, noticeably softer and rounder than a raw saw. Change `2000` to `400`\nand it goes muffled. Change it to `12000` and it's almost the unfiltered saw again.",
+        "meta": {
+          "caption": null
+        }
+      },
+      {
+        "type": "text",
+        "content": "### Making the filter move\n\nStatic filter, static sound. Everything interesting in synthesis comes from parameters\nchanging over time, and now that we know how to advance time we can do that."
+      },
+      {
+        "type": "chuck",
+        "content": "SawOsc osc => LPF filter => dac;\n110 => osc.freq;\n0.3 => osc.gain;\n2 => filter.Q;\n\n200 => float cutoff;\n\nwhile( cutoff < 6000 )\n{\n    cutoff => filter.freq;\n    cutoff * 1.05 => cutoff;\n    10::ms => now;\n}",
+        "meta": {
+          "file": "groovebox.ck",
+          "verified": true
+        }
+      },
+      {
+        "type": "text",
+        "content": "Every 10 milliseconds we nudge the cutoff up by 5% and let time move on. That's a filter\nsweep, and it's the same loop shape from chapter 1 with a parameter update in it.\n\nWe multiply rather than add because pitch and frequency are perceived logarithmically.\nAdding a fixed 100 Hz each step sounds fast at the bottom and then crawls; multiplying\nsounds like an even sweep."
+      },
+      {
+        "type": "hear",
+        "content": "The classic filter sweep, roughly two and a half seconds of a note opening up from\nmuffled to bright.",
+        "meta": {
+          "caption": null
+        }
+      },
+      {
+        "type": "text",
+        "content": "### More than one thing at once\n\nYou can chuck several UGens into `dac` and they sum together."
+      },
+      {
+        "type": "chuck",
+        "content": "SinOsc a => dac;\nSinOsc b => dac;\n220 => a.freq;\n330 => b.freq;\n0.2 => a.gain;\n0.2 => b.gain;\n2::second => now;",
+        "meta": {
+          "file": "groovebox.ck",
+          "verified": true
+        }
+      },
+      {
+        "type": "text",
+        "content": "Keep the gains low when you do this. Two things at 0.5 each will clip, because summing\nis just addition and nothing is protecting you from going past full scale."
+      },
+      {
+        "type": "changed",
+        "content": "- UGens: `SinOsc`, `SawOsc`, `LPF`, and `dac`\n- `=>` connects UGens as well as assigning values\n- Chains can be any length and are written left to right\n- A UGen only makes sound while time is advancing\n- Changing a parameter inside a timed loop is how you get movement",
+        "meta": {
+          "caption": null
+        }
+      },
+      {
+        "type": "text",
+        "content": "---"
+      }
+    ],
+    "yaml": {
+      "part": "one",
+      "eyebrow": "Episode 02",
+      "prev": "01",
+      "next": "03"
+    }
+  },
+  {
+    "title": "Chapter 03: One voice",
+    "blocks": [
+      {
+        "type": "text",
+        "content": "Right now our sound starts instantly and stops instantly, which is why it sounds like a\ntest tone and not an instrument. This chapter fixes that with an envelope, and wraps the\nresult into a function we can actually play notes with.\n\nReal sounds have a shape over time. A plucked string jumps to full volume and decays\naway. A bowed one fades in. The standard way to describe that shape is an **ADSR\nenvelope**: Attack, Decay, Sustain, Release.\n\nAttack is how long it takes to reach full volume after the note starts. Decay is how\nlong it then takes to fall to the sustain level. Sustain is the level it holds at while\nthe note is held down, and it's a level rather than a time. Release is how long it takes\nto fade to silence after the note is let go."
+      },
+      {
+        "type": "chuck",
+        "content": "SawOsc osc => ADSR env => LPF filter => dac;\n110 => osc.freq;\n0.4 => osc.gain;\n1200 => filter.freq;\n2 => filter.Q;\n\nenv.set( 5::ms, 100::ms, 0.3, 200::ms );\n\nenv.keyOn();\n300::ms => now;\nenv.keyOff();\n300::ms => now;",
+        "meta": {
+          "file": "groovebox.ck",
+          "verified": true
+        }
+      },
+      {
+        "type": "text",
+        "content": "`ADSR` goes into the chain right after the oscillator, because it works by scaling\nwhatever passes through it. The four arguments to `env.set()` are attack, decay, sustain\nand release, in that order. Three of them are durations and the sustain is a plain\nnumber between 0 and 1, which trips people up the first time.\n\n`keyOn()` starts the note, exactly like pressing a key. `keyOff()` releases it. In\nbetween you advance time, and that's how long the note is held for."
+      },
+      {
+        "type": "ruler",
+        "content": "0ms | keyOn: attack | hit\n5ms | decay |\n105ms | sustain 0.3 |\n300ms | keyOff: release | hit\n500ms | silent |",
+        "meta": {
+          "caption": "what the envelope is doing"
+        }
+      },
+      {
+        "type": "text",
+        "content": "Note the second time advance after `keyOff()`. Release takes 200ms, and if the program\nends before that time passes, you cut the tail off. Forgetting the wait after a release\nis one of those bugs that sounds like a click and takes twenty minutes to find."
+      },
+      {
+        "type": "hear",
+        "content": "A short plucky note instead of a blast of tone. Set attack to `400::ms` and the same\nnote now swells in like a pad. Same oscillator, same filter, completely different\ninstrument.",
+        "meta": {
+          "caption": null
+        }
+      },
+      {
+        "type": "text",
+        "content": "### Turning it into a function\n\nPlaying one note by hand is fine. Playing sixteen is not, so let's wrap it."
+      },
+      {
+        "type": "chuck",
+        "content": "SawOsc osc => ADSR env => LPF filter => dac;\n0.4 => osc.gain;\n1200 => filter.freq;\n2 => filter.Q;\nenv.set( 5::ms, 100::ms, 0.3, 200::ms );\n\nfun void playNote( float freq, dur length )\n{\n    freq => osc.freq;\n    env.keyOn();\n    length => now;\n    env.keyOff();\n    200::ms => now;\n}\n\nplayNote( 220, 300::ms );\nplayNote( 277.18, 300::ms );\nplayNote( 329.63, 300::ms );",
+        "meta": {
+          "file": "groovebox.ck",
+          "verified": true
+        }
+      },
+      {
+        "type": "text",
+        "content": "Functions are declared with `fun`, then the return type, then the name. Nothing\nsurprising there. The surprising part is the second parameter: `dur` is a first-class\ntype, so a function can take a duration the same way it takes a float.\n\nThe important thing about this function is that **it advances time itself**. Calling\n`playNote` doesn't schedule a note for later, it plays the note and returns 500ms of\nprogram time later. Three calls, one after another, is a melody. That's why the three\nnotes come out sequentially without any scheduling code.\n\nIt's also a limitation, and it's the one that sets up the next few chapters. Because\n`playNote` blocks, you cannot use it to play two notes at the same time. We'll fix that\nin chapter 5.\n\n### Note numbers instead of frequencies\n\nThose magic numbers above are A3, C#4 and E4. Nobody remembers frequencies, so use MIDI\nnote numbers and convert:"
+      },
+      {
+        "type": "chuck",
+        "content": "<<< \"midi 69 =\", Std.mtof(69), \"Hz\" >>>;\n<<< \"midi 60 =\", Std.mtof(60), \"Hz\" >>>;\n<<< \"midi 36 =\", Std.mtof(36), \"Hz\" >>>;",
+        "meta": {
+          "file": "groovebox.ck",
+          "verified": true
+        }
+      },
+      {
+        "type": "output",
+        "content": "midi 69 = 440.000000 Hz\nmidi 60 = 261.625565 Hz\nmidi 36 = 65.406391 Hz",
+        "meta": {}
+      },
+      {
+        "type": "text",
+        "content": "`Std.mtof` is \"MIDI to frequency\". 69 is A4 at 440 Hz, 60 is middle C, and every 12\nnumbers is an octave. Adding 12 to a note number doubles its frequency, which is a much\neasier thing to hold in your head than the actual Hz values. From here on, notes are\nintegers."
+      },
+      {
+        "type": "changed",
+        "content": "- `ADSR` in the chain, driven by `keyOn()` and `keyOff()`\n- Always advance time after `keyOff()` or you lose the release tail\n- `fun` declares functions, and `dur` is a normal parameter type\n- A function that advances time blocks, which is fine for melody and useless for chords\n- `Std.mtof()` turns note numbers into frequencies",
+        "meta": {
+          "caption": null
+        }
+      },
+      {
+        "type": "text",
+        "content": "---"
+      }
+    ],
+    "yaml": {
+      "part": "one",
+      "eyebrow": "Episode 03",
+      "prev": "02",
+      "next": "04"
+    }
+  },
+  {
+    "title": "Chapter 04: A pattern",
+    "blocks": [
+      {
+        "type": "text",
+        "content": "We have a voice and we have precise time. Put an array between them and you have a\nsequencer, which is the first thing in this series that sounds like actual music.\n\nA drum pattern is a grid. Sixteen steps to a bar, and at each step a drum either fires or\nit doesn't. That's an array of ones and zeros, and it's the standard way of representing\nthis going back to hardware drum machines from the eighties."
+      },
+      {
+        "type": "chuck",
+        "content": "[1, 0, 0, 0, 1, 0, 0, 0] @=> int kick[];\n<<< \"steps:\", kick.size() >>>;",
+        "meta": {
+          "file": "groovebox.ck",
+          "verified": true
+        }
+      },
+      {
+        "type": "text",
+        "content": "New operator. `@=>` is the **reference assignment** operator, used for objects and arrays\nrather than plain numbers. Regular `=>` copies a value; `@=>` points a name at an object.\nArrays are objects, so arrays use `@=>`. If you've written Java, it's the same\ndistinction as primitives versus references.\n\n### The step loop\n\nNow walk the array in time."
+      },
+      {
+        "type": "chuck",
+        "content": "SinOsc osc => ADSR env => dac;\n55 => osc.freq;\n0.8 => osc.gain;\nenv.set( 1::ms, 120::ms, 0.0, 1::ms );\n\n[1, 0, 0, 0, 1, 0, 0, 0] @=> int kick[];\n0.125::second => dur step;\n\nfor( 0 => int bar; bar < 2; bar++ )\n{\n    for( 0 => int i; i < kick.size(); i++ )\n    {\n        if( kick[i] == 1 ) env.keyOn();\n        step => now;\n    }\n}",
+        "meta": {
+          "file": "groovebox.ck",
+          "verified": true
+        }
+      },
+      {
+        "type": "text",
+        "content": "The inner loop walks one bar. For each step, if the pattern says fire, we trigger the\nenvelope, and then we advance one step's worth of time regardless. The outer loop repeats\nthe bar.\n\nThe envelope settings are what make this read as a drum rather than a note. Attack of 1ms\nso it's instant, decay of 120ms, and crucially **sustain of 0.0**. With nothing to\nsustain to, the sound dies on its own after the decay and we never need to call\n`keyOff()` at all. Percussion is just an envelope that ignores how long you held the key."
+      },
+      {
+        "type": "ruler",
+        "content": "0 | kick | hit\n1 |  |\n2 |  |\n3 |  |\n4 | kick | hit\n5 |  |\n6 |  |\n7 |  |",
+        "meta": {
+          "caption": "one bar, 8 steps at 0.125s"
+        }
+      },
+      {
+        "type": "hear",
+        "content": "Two bars of a plain four-on-the-floor kick, four seconds total. It's dull, and it's a\nsequencer. Change a `0` to a `1` and hear the pattern move.",
+        "meta": {
+          "caption": null
+        }
+      },
+      {
+        "type": "text",
+        "content": "### Tempo, properly\n\nThat hardcoded `0.125::second` should be derived from a BPM, because right now changing\nthe tempo means doing arithmetic in your head."
+      },
+      {
+        "type": "chuck",
+        "content": "120 => float bpm;\n(60.0/bpm)::second => dur beat;\nbeat/2 => dur step;\n\n<<< \"at\", bpm, \"bpm one beat is\", beat/ms, \"ms\" >>>;\n<<< \"one 1/8 step is\", step/ms, \"ms\" >>>;",
+        "meta": {
+          "file": "groovebox.ck",
+          "verified": true
+        }
+      },
+      {
+        "type": "output",
+        "content": "at 120.000000 bpm one beat is 500.000000 ms\none 1/8 step is 250.000000 ms",
+        "meta": {}
+      },
+      {
+        "type": "text",
+        "content": "Sixty seconds divided by beats per minute gives you the length of one beat, and `::`\nturns that float into a duration. Then a step is half a beat if you're working in eighth\nnotes, or a quarter of one for sixteenths. One variable at the top now controls the tempo\nof everything downstream."
+      },
+      {
+        "type": "output",
+        "content": "[chuck]:(EXCEPTION) ArrayOutofBounds: on line[2] index[9]",
+        "meta": {
+          "caption": null
+        }
+      },
+      {
+        "type": "text",
+        "content": "Older tutorials were written before this change and lean on the old behaviour. If you're\nfollowing along on an older build, or reading someone else's ChucK from a few years back,\nthis is the difference you'll hit first. Use `.size()` to grow an array deliberately;\n`.capacity()` only reserves space and no longer changes what's in bounds."
+      },
+      {
+        "type": "unknown",
+        "content": "",
+        "meta": {}
+      },
+      {
+        "type": "text",
+        "content": "- `@=>` for arrays and objects, plain `=>` for values\n- A pattern is an `int` array; the step loop reads it and advances time\n- Sustain of 0.0 gives you percussion with no `keyOff()` needed\n- Tempo derived from BPM, so `step` is never a magic number again\n- Array indexing past `.size()` throws, as of 1.5.5.7"
+      }
+    ],
+    "yaml": {
+      "part": "one",
+      "eyebrow": "Episode 04",
+      "prev": "03",
+      "next": "05"
+    }
+  },
+  {
+    "title": "Chapter 05: Two tracks at once",
+    "blocks": [
+      {
+        "type": "text",
+        "content": "A kick on its own isn't a groove. Adding a hi-hat sounds like it should be five minutes\nof work, and instead it walks us straight into the wall that ChucK was built to knock\ndown.\n\nHere's the problem. Our step loop from chapter 4 advances time itself. That's what makes\nit work. But it also means that while it's running, nothing else in the program can\nhappen, because time only moves when that loop moves it. A hi-hat on eighth notes and a\nkick on quarter notes are two loops with different step lengths, and one blocking loop\ncannot be two loops.\n\nYou could interleave them by hand. Work out the least common multiple of both patterns,\nbuild one combined grid, and step through that. It works for two tracks. It's miserable\nfor four, and it's impossible once one track has swing on it. That's not the answer.\n\n### Shreds\n\nChucK's answer is the **shred**. A shred is an independently running piece of your\nprogram with **its own timeline**. Each one has its own view of `now`, advances time on\nits own terms, and the virtual machine keeps them all in step with each other at sample\nresolution.\n\nYou create one with `spork ~` in front of a function call."
+      },
+      {
+        "type": "chuck",
+        "content": "fun void counter( string name, dur period )\n{\n    for( 0 => int i; i < 3; i++ )\n    {\n        <<< name, i, \"at\", now/ms, \"ms\" >>>;\n        period => now;\n    }\n}\n\nspork ~ counter( \"A\", 100::ms );\nspork ~ counter( \"B\", 150::ms );\n1::second => now;",
+        "meta": {
+          "file": "groovebox.ck",
+          "verified": true
+        }
+      },
+      {
+        "type": "output",
+        "content": "A 0 at 0.000000 ms\nB 0 at 0.000000 ms\nA 1 at 100.000000 ms\nB 1 at 150.000000 ms\nA 2 at 200.000000 ms\nB 2 at 300.000000 ms",
+        "meta": {}
+      },
+      {
+        "type": "text",
+        "content": "Two functions, two rates, exact timings on both. No thread pool, no scheduler you had to\nconfigure, no callback. Just `spork ~`."
+      },
+      {
+        "type": "ruler",
+        "content": "0ms | A0 · B0 | hit\n100 | A1 | hit\n150 | B1 | hit\n200 | A2 | hit\n300 | B2 | hit",
+        "meta": {
+          "caption": "two shreds, two rates, one timeline"
+        }
+      },
+      {
+        "type": "text",
+        "content": "The last line matters as much as the sporks. `spork` starts a shred but doesn't run it\nyet; the new shred gets its turn once the current shred advances time or exits. And when\nthe shred that sporked them ends, the program can end with it. So the parent needs to\nstick around, which is what that `1::second => now` is doing.\n\n### Two real tracks\n\nNow the actual groovebox. Each track becomes a function, and each function owns its own\nUGen chain."
+      },
+      {
+        "type": "chuck",
+        "content": "fun void kickTrack()\n{\n    SinOsc osc => ADSR env => dac;\n    55 => osc.freq;\n    0.8 => osc.gain;\n    env.set( 1::ms, 120::ms, 0.0, 1::ms );\n\n    [1,0,0,0,1,0,0,0] @=> int p[];\n\n    for( 0 => int i; i < 16; i++ )\n    {\n        if( p[i % p.size()] == 1 ) env.keyOn();\n        0.25::second => now;\n    }\n}\n\nfun void hatTrack()\n{\n    Noise n => ADSR env => HPF hp => dac;\n    0.15 => n.gain;\n    7000 => hp.freq;\n    env.set( 1::ms, 40::ms, 0.0, 1::ms );\n\n    for( 0 => int i; i < 32; i++ )\n    {\n        env.keyOn();\n        0.125::second => now;\n    }\n}\n\nspork ~ kickTrack();\nspork ~ hatTrack();\n4::second => now;",
+        "meta": {
+          "file": "groovebox.ck",
+          "verified": true
+        }
+      },
+      {
+        "type": "text",
+        "content": "The hi-hat is `Noise` through a high-pass filter, which is the cheapest convincing cymbal\nyou can build. Noise contains every frequency at once, `HPF` throws away everything below\n7kHz, and a 40ms decay does the rest. Not a real hi-hat, close enough to groove.\n\nNote that each track declares its UGens inside its own function. They're local, so the\ntwo tracks can't accidentally share an oscillator, and each connects to `dac`\nindependently. Two chains, summed at the output, exactly like the two sine waves in\nchapter 2."
+      },
+      {
+        "type": "hear",
+        "content": "Four seconds of kick on the quarters with hats on the eighths. It's the first thing in\nthis series you could nod your head to.",
+        "meta": {
+          "caption": null
+        }
+      },
+      {
+        "type": "note",
+        "content": "**Shreds are not threads.** Nothing here runs in parallel on another core, and you will\nnever get a race condition on a shared variable because only one shred runs at a time.\nWhat you get is a scheduler that understands time, so a shred that asks to wake up in\n125ms wakes up in exactly 125ms of audio time.\n\nThe trade is the same one from chapter 1: a shred that loops without advancing time hangs\nthe whole VM, not just itself.",
+        "meta": {
+          "caption": null
+        }
+      },
+      {
+        "type": "changed",
+        "content": "- `spork ~ f()` starts a shred with its own timeline\n- Each track is a function that owns its UGen chain and its own step loop\n- The parent shred has to stay alive or the program exits under its children\n- `Noise` into `HPF` is a serviceable hi-hat",
+        "meta": {
+          "caption": null
+        }
+      },
+      {
+        "type": "text",
+        "content": "Two tracks work. Now try changing the tempo, and notice there are two places to change\nit.\n\n---"
+      }
+    ],
+    "yaml": {
+      "part": "two",
+      "eyebrow": "Episode 05",
+      "prev": "04",
+      "next": "06"
+    }
+  },
+  {
+    "title": "Chapter 06: Keeping them in sync",
+    "blocks": [
+      {
+        "type": "text",
+        "content": "Our two tracks each own their own tempo, their own step counter and their own idea of\nwhere the bar starts. That's four things to keep in agreement by hand, and it gets worse\nwith every track we add.\n\nFirst, an honest correction to what you might expect. Our two shreds do **not** drift\napart. In a language where sleep is approximate they would, and every audio tutorial\nwarns you about it. In ChucK the timings are exact, so a hat shred stepping at 125ms will\nstill be exactly on the grid an hour later.\n\nThe real problems are different, and they're structural:\n\n- Tempo is written in two places. Change one and the tracks disagree.\n- A track sporked later starts wherever it starts. There's no shared idea of \"step 0\".\n- Nothing knows what step number it's on, so patterns of different lengths can't line up\n  against a common bar.\n\nThe fix is one shred that owns time and tells everyone else about it. Which means we need\na way for shreds to talk.\n\n### Events\n\nAn `Event` is something a shred can wait on. Chuck an event into `now` and the shred\nsleeps until the event fires, however long that takes."
+      },
+      {
+        "type": "chuck",
+        "content": "Event tick;\n\ntick => now;   // waits here until someone fires it",
+        "meta": {
+          "file": "groovebox.ck",
+          "verified": true
+        }
+      },
+      {
+        "type": "text",
+        "content": "That's the same `=> now` you've been writing since chapter 1, and it means the same\nthing: advance time until this. The only difference is that the amount is decided by\nanother shred instead of by a number.\n\nTwo ways to fire one. `signal()` wakes a single waiting shred, and `broadcast()` wakes\nall of them. For a clock, it's always `broadcast()`.\n\n### The clock shred"
+      },
+      {
+        "type": "chuck",
+        "content": "120 => float bpm;\n(60.0/bpm)::second / 2 => dur step;\n\nEvent tick;\n0 => int stepCount;\n\nfun void clock()\n{\n    while( true )\n    {\n        tick.broadcast();\n        step => now;\n        stepCount++;\n    }\n}\n\nfun void track( string name, int pattern[] )\n{\n    while( true )\n    {\n        tick => now;\n        if( pattern[ stepCount % pattern.size() ] == 1 )\n            <<< name, \"on step\", stepCount, \"at\", now/ms, \"ms\" >>>;\n    }\n}\n\nspork ~ track( \"kick\", [1,0,0,0] );\nspork ~ track( \"hat\",  [0,1,0,1] );\nspork ~ clock();\n\n1500::ms => now;",
+        "meta": {
+          "file": "groovebox.ck",
+          "verified": true
+        }
+      },
+      {
+        "type": "output",
+        "content": "kick on step 0 at 0.000000 ms\nhat on step 1 at 250.000000 ms\nhat on step 3 at 750.000000 ms\nkick on step 4 at 1000.000000 ms\nhat on step 5 at 1250.000000 ms",
+        "meta": {}
+      },
+      {
+        "type": "text",
+        "content": "Now there is exactly one place that knows about tempo and exactly one step counter. A\ntrack never advances time by a duration at all. It waits for the tick, does its work, and\nwaits again. Tracks became pure pattern logic, which is what we wanted.\n\nNotice the patterns have different lengths, four steps each here but they needn't be, and\nthey still line up, because `stepCount % pattern.size()` is measured against a counter\neverybody shares."
+      },
+      {
+        "type": "note",
+        "content": "**Spork the clock last.** This one cost me an evening. `spork` queues a shred but doesn't\nrun it until the current shred yields, so if you spork the clock first, it runs first,\nbroadcasts to an empty room, and your tracks miss the opening steps. Sporked in the order\nabove, both tracks reach `tick => now` and are waiting before the clock ever fires.\n\nIf your first bar is missing hits and every bar after is fine, this is why.",
+        "meta": {
+          "caption": null
+        }
+      },
+      {
+        "type": "text",
+        "content": "### Why this shape is worth the trouble\n\nOnce there's a clock event, a lot of things become nearly free. Changing `bpm` changes\neverything. A new track is one more `spork` with an array in it. And because tracks are\nnow waiting on an event rather than on a duration, the thing driving them doesn't have to\nbe a clock at all. In chapter 10 we point a MIDI controller at that same event and the\nwhole groovebox follows external hardware without any track code changing."
+      },
+      {
+        "type": "changed",
+        "content": "- `Event`, and `evt => now` to wait on one\n- `broadcast()` wakes every waiter, `signal()` wakes one\n- One clock shred owns tempo and the step counter\n- Tracks hold no timing of their own, only patterns\n- Spork order decides who is waiting when the first broadcast lands",
+        "meta": {
+          "caption": null
+        }
+      },
+      {
+        "type": "text",
+        "content": "---"
+      }
+    ],
+    "yaml": {
+      "part": "two",
+      "eyebrow": "Episode 06",
+      "prev": "05",
+      "next": "07"
+    }
+  },
+  {
+    "title": "Chapter 07: A reusable Voice",
+    "blocks": [
+      {
+        "type": "text",
+        "content": "Every track so far declares its own oscillator, its own envelope and its own filter, and\nthe code to do that is nearly identical each time. Time to write it once.\n\nChucK has classes, and they work roughly how you'd expect coming from Java or C++. The\ninteresting part is what happens when you put UGens inside one: each instance gets its\nown chain, wired up when the object is created."
+      },
+      {
+        "type": "chuck",
+        "content": "class Voice\n{\n    SawOsc osc => ADSR env => LPF filt => Gain out;\n    0.3 => osc.gain;\n    2 => filt.Q;\n\n    fun void setup( float cutoff, dur a, dur d, float s, dur r )\n    {\n        cutoff => filt.freq;\n        env.set( a, d, s, r );\n    }\n\n    fun void hit( int note )\n    {\n        Std.mtof( note ) => osc.freq;\n        env.keyOn();\n    }\n\n    fun void release()\n    {\n        env.keyOff();\n    }\n}",
+        "meta": {
+          "file": "groovebox.ck",
+          "verified": true
+        }
+      },
+      {
+        "type": "text",
+        "content": "The chain is declared as a member, at class scope, and so are the two lines setting gain\nand Q. Anything written directly in the class body runs when an instance is created, so\nevery `Voice` comes out already wired and already sensible.\n\nThe last UGen in the chain is a `Gain` called `out` rather than `dac`, and that's\ndeliberate. If the class chucked itself straight into the speakers, every voice would be\npermanently connected the moment it existed and you'd have no say in it. Ending at a\n`Gain` gives the class an output you connect yourself."
+      },
+      {
+        "type": "chuck",
+        "content": "Voice bass;\nVoice lead;\n\nbass.out => dac;\nlead.out => dac;\n\nbass.setup( 800,  2::ms, 150::ms, 0.0, 5::ms );\nlead.setup( 3000, 2::ms, 90::ms,  0.0, 5::ms );\n\nbass.hit( 36 );\n250::ms => now;\nlead.hit( 60 );\n250::ms => now;",
+        "meta": {
+          "file": "groovebox.ck",
+          "verified": true
+        }
+      },
+      {
+        "type": "text",
+        "content": "Two instances, two completely separate signal chains, different cutoffs and different\nenvelopes, from one class. Same object with different settings is the difference between\na bass and a lead, which is a fair summary of subtractive synthesis generally."
+      },
+      {
+        "type": "hear",
+        "content": "A short dark note low down, then a brighter one two octaves up. Both plucky, because both\nhave sustain at 0.0.",
+        "meta": {
+          "caption": null
+        }
+      },
+      {
+        "type": "text",
+        "content": "### Dropping it into the tracks\n\nNow the track function from chapter 6 takes a voice and a pattern, and stops caring how\nthe sound is made:"
+      },
+      {
+        "type": "chuck",
+        "content": "fun void track( Voice v, int pattern[], int note )\n{\n    while( true )\n    {\n        tick => now;\n        if( pattern[ stepCount % pattern.size() ] == 1 )\n            v.hit( note );\n    }\n}\n\nspork ~ track( bass, [1,0,0,0], 36 );\nspork ~ track( lead, [0,0,1,0], 60 );\nspork ~ clock();",
+        "meta": {
+          "file": "groovebox.ck",
+          "verified": false
+        }
+      },
+      {
+        "type": "text",
+        "content": "Three concerns now live in three places: `Voice` makes sound, `track` reads patterns,\n`clock` owns time. Adding a fourth track is one line. This is the point where the file\nstops being a script and starts being a program."
+      },
+      {
+        "type": "note",
+        "content": "Objects use `@=>`, same as the arrays in chapter 4. `Voice bass;` creates one, and if you\nlater want a second name for the same voice it's `bass @=> Voice alias;`, not `=>`. Two\nnames, one object, one signal chain.",
+        "meta": {
+          "caption": null
+        }
+      },
+      {
+        "type": "changed",
+        "content": "- `class`, with UGen chains as members that wire on instantiation\n- Class-body statements run at construction, so instances arrive configured\n- End the chain at a `Gain`, not `dac`, and let the caller connect it\n- Tracks take a `Voice`, so pattern logic and sound design are finally separate",
+        "meta": {
+          "caption": null
+        }
+      },
+      {
+        "type": "text",
+        "content": "---"
+      }
+    ],
+    "yaml": {
+      "part": "two",
+      "eyebrow": "Episode 07",
+      "prev": "06",
+      "next": "08"
+    }
+  },
+  {
+    "title": "Chapter 08: Changing code while it runs",
+    "blocks": [
+      {
+        "type": "text",
+        "content": "This is the chapter I'd point at if someone asked why bother with ChucK at all. We're\ngoing to edit a running program's source, and hear the change arrive, without the music\never stopping.\n\nEvery language you know has an edit-compile-run loop with a stop in it. You change the\ncode, you restart the thing, you lose whatever state it had. For a web server that's\nfine. For music it's fatal, because the state you just threw away was a groove somebody\nwas dancing to.\n\nChucK has no stop in that loop. Shreds can be added to and removed from a running virtual\nmachine, from the outside, while it plays. This is what people mean by **on-the-fly\nprogramming**, and it's what the language was originally built to do.\n\n### Starting a VM with nothing in it"
+      },
+      {
+        "type": "terminal",
+        "content": "chuck --loop",
+        "meta": {}
+      },
+      {
+        "type": "text",
+        "content": "That starts ChucK with no program at all, and leaves it running. Silent, idle, waiting.\nLeave that terminal alone; it's your machine now. Everything else happens from a second\nterminal."
+      },
+      {
+        "type": "terminal",
+        "content": "chuck + clock.ck\nchuck + kick.ck\nchuck + hat.ck",
+        "meta": {}
+      },
+      {
+        "type": "text",
+        "content": "Each `+` adds that file to the running VM as a new shred. The clock starts, then the kick\njoins it, then the hats. Nothing restarted between those three commands, and the music\nkept playing throughout.\n\nThe other two commands:"
+      },
+      {
+        "type": "terminal",
+        "content": "chuck ^              # list running shreds and their ids\nchuck - 3            # remove shred 3\nchuck = 3 hat.ck     # replace shred 3 with a fresh copy of hat.ck",
+        "meta": {}
+      },
+      {
+        "type": "text",
+        "content": "That last one is the whole point. Open `hat.ck`, change a zero to a one, save, and run\n`chuck = 3 hat.ck`. The old hat shred is removed and the new one starts, and everything\nelse (clock, kick, your place in the bar) carries straight on."
+      },
+      {
+        "type": "hear",
+        "content": "The pattern changes and the groove doesn't stop. Not a stutter, not a gap, not a click.\nIf you've only ever restarted programs to see changes, this is a genuinely strange\nfeeling the first time.",
+        "meta": {
+          "caption": null
+        }
+      },
+      {
+        "type": "text",
+        "content": "### Doing it from inside\n\nThe same operations are available to your code through `Machine`, which means a shred can\nadd and remove other shreds."
+      },
+      {
+        "type": "chuck",
+        "content": "<<< \"my shred id:\", me.id() >>>;\n<<< \"my source:\", me.sourcePath() >>>;\n<<< \"shreds running:\", Machine.numShreds() >>>;\n\nMachine.add( me.dir() + \"/hat.ck\" ) => int id;\n<<< \"added shred\", id >>>;\n\n4::second => now;\nMachine.remove( id );",
+        "meta": {
+          "file": "groovebox.ck",
+          "verified": true
+        }
+      },
+      {
+        "type": "text",
+        "content": "`me` refers to the current shred. `me.id()` is the number you'd pass to `chuck -` from\nthe terminal, and `me.dir()` is the directory the source file lives in, which is how you\nbuild paths that still work on somebody else's machine.\n\n`Machine.add()` returns the new shred's id, and you need to keep it, because\n`Machine.remove()` and `Machine.replace()` both take it. A launcher file that adds every\ntrack and holds their ids is a nice way to arrange this once you have more than three."
+      },
+      {
+        "type": "note",
+        "content": "**Design for replacement.** Live swapping only feels good if a shred can be killed at any\ninstant without leaving a mess. Two rules cover most of it: keep per-track state inside\nthe track's own shred so removing it takes the state with it, and have tracks wait on the\nshared clock rather than hold timing of their own, so a replacement lands on the next\ntick instead of wherever it happened to start.\n\nChapter 6 was already setting this up. That's why the clock came before this chapter and\nnot after.",
+        "meta": {
+          "caption": null
+        }
+      },
+      {
+        "type": "changed",
+        "content": "- `chuck --loop` runs an empty VM you add to from another terminal\n- `chuck +` adds, `-` removes, `=` replaces, `^` lists\n- `Machine.add/remove/replace` do the same from inside a program\n- `me.id()`, `me.dir()`, `me.sourcePath()`\n- Shreds that hold their own state and wait on a shared clock are safe to swap",
+        "meta": {
+          "caption": null
+        }
+      },
+      {
+        "type": "text",
+        "content": "---"
+      }
+    ],
+    "yaml": {
+      "part": "two",
+      "eyebrow": "Episode 08",
+      "prev": "07",
+      "next": "09"
+    }
+  },
+  {
+    "title": "Chapter 09: Samples and files",
+    "blocks": [
+      {
+        "type": "text",
+        "content": "Synthesised drums have a sound, and it's a 1980s sound. Sometimes you want an actual\nrecording of an actual drum, and that means loading files off disk.\n\n`SndBuf` is a UGen that holds an audio file in memory and plays it back. It's the\nsampler, and it's about as simple as this gets."
+      },
+      {
+        "type": "chuck",
+        "content": "SndBuf buf => dac;\nme.dir() + \"/samples/kick.wav\" => buf.read;\n\n<<< \"loaded\", buf.samples(), \"samples,\", buf.length()/second, \"sec\" >>>;\n\n0 => buf.pos;\n1.0 => buf.rate;\n0.8 => buf.gain;\n\n500::ms => now;",
+        "meta": {
+          "file": "groovebox.ck",
+          "verified": true
+        }
+      },
+      {
+        "type": "text",
+        "content": "Chucking a filename into `buf.read` loads the file. It plays from wherever `buf.pos`\ncurrently is, so `0 => buf.pos` is how you trigger it: rewind to the start and it goes.\nThat's the whole API for one-shot playback.\n\nTwo details that matter. `buf.rate` is playback speed, where 1.0 is normal, 2.0 is an\noctave up and half as long, and negative values play it backwards. And a buffer that has\nfinished playing sits at the end doing nothing, which is why you retrigger by setting\n`pos` rather than by calling some `play()` method that doesn't exist.\n\nUse `me.dir()` for the path, always. A relative path is resolved against wherever you\nhappened to run `chuck` from, so it works on your machine and breaks on everyone else's.\n\n### A sampled track\n\nWrapping it in the pattern from chapter 6 needs almost nothing new:"
+      },
+      {
+        "type": "chuck",
+        "content": "fun void sampleTrack( string file, int pattern[], float level )\n{\n    SndBuf buf => dac;\n    me.dir() + file => buf.read;\n    level => buf.gain;\n    buf.samples() => buf.pos;   // park at the end, silent\n\n    while( true )\n    {\n        tick => now;\n        if( pattern[ stepCount % pattern.size() ] == 1 )\n            0 => buf.pos;\n    }\n}\n\nspork ~ sampleTrack( \"/samples/kick.wav\", [1,0,0,0], 0.9 );\nspork ~ sampleTrack( \"/samples/snare.wav\", [0,0,1,0], 0.7 );",
+        "meta": {
+          "file": "groovebox.ck",
+          "verified": false
+        }
+      },
+      {
+        "type": "text",
+        "content": "That `buf.samples() => buf.pos` on load is the one non-obvious line. A freshly loaded\nbuffer sits at position zero, which means it plays immediately, which means every sample\ntrack fires once the moment your program starts. Parking it at the end keeps it quiet\nuntil the first real hit."
+      },
+      {
+        "type": "note",
+        "content": "ChucK reads WAV, AIFF and a few others through its built-in libsndfile. It does not read\nMP3. Convert first, and prefer 48kHz files so nothing gets resampled on load.",
+        "meta": {
+          "caption": null
+        }
+      },
+      {
+        "type": "changed",
+        "content": "- `SndBuf`, loaded by chucking a path into `.read`\n- Trigger by setting `.pos` to 0; there is no play method\n- `.rate` for speed and pitch, negative for reverse\n- Park a freshly loaded buffer at `.samples()` or it fires on startup\n- Always build paths from `me.dir()`",
+        "meta": {
+          "caption": null
+        }
+      },
+      {
+        "type": "text",
+        "content": "---"
+      }
+    ],
+    "yaml": {
+      "part": "three",
+      "eyebrow": "Episode 09",
+      "prev": "08",
+      "next": "10"
+    }
+  },
+  {
+    "title": "Chapter 10: Playing it from outside",
+    "blocks": [
+      {
+        "type": "text",
+        "content": "The groovebox currently only listens to itself. Two ways to change that: MIDI, for\nhardware sitting on your desk, and OSC, for anything on the network.\n\n### MIDI in\n\nFirst find out what's connected:"
+      },
+      {
+        "type": "terminal",
+        "content": "chuck --probe",
+        "meta": {}
+      },
+      {
+        "type": "text",
+        "content": "Among the audio devices it lists MIDI inputs, each with a number. Then:"
+      },
+      {
+        "type": "chuck",
+        "content": "MidiIn min;\nMidiMsg msg;\n\nif( !min.open( 0 ) )\n{\n    <<< \"could not open midi device 0\" >>>;\n    me.exit();\n}\n\n<<< \"listening to\", min.name() >>>;\n\nwhile( true )\n{\n    min => now;\n    while( min.recv( msg ) )\n    {\n        <<< msg.data1, msg.data2, msg.data3 >>>;\n    }\n}",
+        "meta": {
+          "file": "groovebox.ck",
+          "verified": false
+        }
+      },
+      {
+        "type": "text",
+        "content": "> Note for the agent: this block compiles but was not executed end-to-end during\n> verification, because the test environment had no MIDI backend. Everything else marked\n> `verified=true` was run. Do not flag this as an error; do not \"correct\" it.\n\nLook at the shape of that loop, because it's the same shape as chapter 6. `min => now`\nwaits on the MIDI input exactly the way `tick => now` waits on the clock event. A\n`MidiIn` *is* an event as far as your code is concerned. Everything you learned about\nevents applies unchanged.\n\nThe inner `while` is there because several messages can arrive in the same instant, and\n`recv` returns false once you've drained them.\n\nThe three bytes: `data1` is the status, where 144 is note-on and 128 is note-off on\nchannel 1. `data2` is the note number, the same numbering as `Std.mtof` from chapter 3.\n`data3` is velocity. A note-on with velocity 0 means note-off, because MIDI is from 1983\nand has opinions."
+      },
+      {
+        "type": "chuck",
+        "content": "while( min.recv( msg ) )\n{\n    if( msg.data1 == 144 && msg.data3 > 0 )\n        lead.hit( msg.data2 );\n    else if( msg.data1 == 128 || msg.data3 == 0 )\n        lead.release();\n}",
+        "meta": {
+          "file": "groovebox.ck",
+          "verified": false
+        }
+      },
+      {
+        "type": "text",
+        "content": "Six lines and the `Voice` class from chapter 7 is now a playable instrument. It works\nbecause `hit()` already took a note number.\n\n### OSC\n\nOpen Sound Control is the modern one: messages over UDP with readable addresses and real\ntypes, so anything on the network can drive the groovebox."
+      },
+      {
+        "type": "chuck",
+        "content": "OscIn oin;\nOscMsg omsg;\n\n6449 => oin.port;\noin.addAddress( \"/step, i\" );\n\n<<< \"listening on port\", oin.port() >>>;\n\nwhile( true )\n{\n    oin => now;\n    while( oin.recv( omsg ) )\n    {\n        <<< \"step\", omsg.getInt(0) >>>;\n    }\n}",
+        "meta": {
+          "file": "groovebox.ck",
+          "verified": true
+        }
+      },
+      {
+        "type": "text",
+        "content": "Same loop again. `addAddress` declares what you'll accept: an address pattern, then a\ncomma, then a type string, where `i` is int, `f` is float and `s` is string. Read the\narguments back with `getInt`, `getFloat` and `getString` by position."
+      },
+      {
+        "type": "note",
+        "content": "Point this at the clock from chapter 6 and something else becomes the timekeeper. Have\nthe OSC handler call `tick.broadcast()` instead of running your own clock shred, and\nevery track follows the network with no changes to any track code. That's the payoff for\nhaving put the clock behind an event three chapters ago.",
+        "meta": {
+          "caption": null
+        }
+      },
+      {
+        "type": "changed",
+        "content": "- `MidiIn` and `MidiMsg`, opened by device number from `--probe`\n- Inputs behave like events: `min => now`, then drain with `recv`\n- 144 note-on, 128 note-off, and velocity 0 means off\n- `OscIn` with `addAddress(\"/name, types\")`\n- Anything that can broadcast the clock event can drive the whole machine",
+        "meta": {
+          "caption": null
+        }
+      },
+      {
+        "type": "text",
+        "content": "---"
+      }
+    ],
+    "yaml": {
+      "part": "three",
+      "eyebrow": "Episode 10",
+      "prev": "09",
+      "next": "11"
+    }
+  },
+  {
+    "title": "Chapter 11: Recording it",
+    "blocks": [
+      {
+        "type": "text",
+        "content": "Everything so far exists only while it's playing. `WvOut` writes it to a file, and it\ntakes about three lines once you know where they go."
+      },
+      {
+        "type": "chuck",
+        "content": "dac => WvOut2 rec => blackhole;\nme.dir() + \"/render.wav\" => rec.wavFilename;\n\n// ... the whole groovebox runs here ...\n\nrec.closeFile();",
+        "meta": {
+          "file": "groovebox.ck",
+          "verified": true
+        }
+      },
+      {
+        "type": "text",
+        "content": "Three things worth understanding in that first line.\n\n`WvOut2` is the stereo version; plain `WvOut` is mono. Since `dac` is stereo, you want\nthe 2.\n\n`dac => rec` looks backwards and isn't. You can chuck `dac` into something to tap\nwhatever is reaching the speakers, which is exactly what you want for recording a mix\nrather than one track.\n\n`blackhole` is a UGen that consumes samples and produces nothing. Every chain needs\nsomething pulling samples through it, and since the recorder's output shouldn't go to the\nspeakers and create a loop, it goes to the blackhole instead. Any time you need a UGen to\nrun without being heard (analysis, metering, recording), this is the ending you want."
+      },
+      {
+        "type": "note",
+        "content": "**The bug everybody hits.** Forget `closeFile()` and you get a WAV with a broken header\nthat some players refuse to open. The file was being written the whole time; the header\nholding the length only gets finalised on close.\n\nIf you kill the VM with Ctrl-C mid-render, same result. Give the recording shred a\ndefinite length and let it finish.",
+        "meta": {
+          "caption": null
+        }
+      },
+      {
+        "type": "text",
+        "content": "To render a fixed number of bars and exit cleanly:"
+      },
+      {
+        "type": "chuck",
+        "content": "dac => WvOut2 rec => blackhole;\nme.dir() + \"/render.wav\" => rec.wavFilename;\n\nspork ~ track( bass, [1,0,0,0], 36 );\nspork ~ track( lead, [0,0,1,0], 60 );\nspork ~ clock();\n\n8 * 4 * step => now;   // eight bars of four steps\n\nrec.closeFile();\n<<< \"wrote render.wav\" >>>;",
+        "meta": {
+          "file": "groovebox.ck",
+          "verified": false
+        }
+      },
+      {
+        "type": "text",
+        "content": "Because the duration is written in `step` units, the render is exactly eight bars at\nwhatever tempo you set, with no arithmetic on your part. Durations being a real type\nkeeps paying off.\n\nAdd `--silent` and it renders without opening an audio device at all, which is faster\nthan real time and doesn't need speakers:"
+      },
+      {
+        "type": "terminal",
+        "content": "chuck --silent groovebox.ck",
+        "meta": {}
+      },
+      {
+        "type": "changed",
+        "content": "- `WvOut2` for stereo, `WvOut` for mono\n- `dac => rec` taps the final mix\n- `blackhole` pulls samples through a chain nobody hears\n- `closeFile()` or the header is broken\n- `--silent` renders offline, no audio device needed",
+        "meta": {
+          "caption": null
+        }
+      },
+      {
+        "type": "text",
+        "content": "---"
+      }
+    ],
+    "yaml": {
+      "part": "three",
+      "eyebrow": "Episode 11",
+      "prev": "10",
+      "next": "12"
+    }
+  },
+  {
+    "title": "Chapter 12: Where this transfers",
+    "blocks": [
+      {
+        "type": "text",
+        "content": "Last one. Nobody is hiring ChucK developers, and I'd rather say that plainly than let you\nfind out later. What you've actually learned across these twelve chapters transfers\nalmost completely, so this chapter is the map.\n\nChucK is a research and teaching language out of Princeton and Stanford. The audio\nindustry runs on C++ with JUCE for plugins, SuperCollider for a lot of live and\ninstallation work, Faust for DSP, and Python for anything touching machine learning. What\nChucK gave you is the mental model, and the mental model is the part that's hard to\nacquire.\n\n### Where `now` went\n\nThe single biggest thing to translate. In ChucK you advance time and the engine fills in\nthe audio. Everywhere else it's inverted: the engine calls your function every so often\nwith a buffer to fill, and you have no say in when.\n\nIn JUCE that's `processBlock`, handed a buffer of maybe 256 samples and expected to\nreturn quickly. There is no `now`. You keep a sample counter, and \"half a second from\nnow\" becomes \"when my counter reaches 24000\". Your envelope no longer sets itself over\n100ms; it advances a fraction per sample, every sample, forever.\n\nThis feels like a downgrade because it is one, and it's a downgrade with a reason. That\ncallback runs on a realtime audio thread that must never block, never allocate, and never\ntake a lock. ChucK's scheduler does the same work for you and pays the cost internally.\nOnce you've written both, the restrictions on the audio thread stop looking arbitrary and\nstart looking like the obvious consequence of having to hit a deadline every 5\nmilliseconds.\n\n### Concept by concept\n\n**Unit generators and chains.** Chapter 2 transfers directly. SuperCollider has UGens by\nthat exact name and chains them in a synth graph. Faust is entirely built from operators\nthat connect processors, and its `:` is our `=>`. JUCE has `juce::dsp` with a\n`ProcessorChain` doing the same job with more ceremony. The idea that sound is a graph of\nsmall processors is universal.\n\n**Envelopes.** Chapter 3 transfers with the names intact. JUCE has `ADSR` and\n`ADSR::Parameters`, and you call `noteOn` and `noteOff` instead of `keyOn` and `keyOff`.\nSuperCollider has `EnvGen` with `Env.adsr`. Same four numbers, same behaviour, same bug\nwhere you cut off the release.\n\n**Shreds and concurrency.** Chapter 5 is the one with no direct equivalent, and knowing\nthat is itself useful. SuperCollider's Routines and Tasks driven by a Clock are the\nclosest thing. In JUCE you don't get concurrency at all in the audio thread; you get one\ncallback and you multiplex tracks by hand, checking each one's counter every block.\nHaving written the version where the language handles it, you'll recognise exactly what\nthe manual version is reimplementing.\n\n**Events and clocks.** Chapter 6 becomes SuperCollider's `TempoClock`, and in JUCE it\nbecomes a sample counter plus a message-thread timer for anything not sample-accurate.\nThe structural lesson (one thing owns tempo, everything else subscribes) is how every\nsequencer ever written is organised, including the ones you'll be paid to work on.\n\n**Live code swapping.** Chapter 8 is ChucK's, and mostly stays ChucK's. SuperCollider can\nre-evaluate blocks live, which is close. JUCE plugins get hot reload only if you build it\nyourself. This is the one capability you should expect to miss.\n\n**MIDI, OSC, files.** Chapters 9 to 11 are the same everywhere with different spellings.\n`MidiMessage` in JUCE, still three bytes, still 144 and 128. OSC is a wire protocol, so\nit's identical by definition. `AudioFormatReader` and `AudioFormatWriter` replace\n`SndBuf` and `WvOut`.\n\n### What to do next\n\nIf plugins are where you're heading, JUCE is the move, and you'll find your ChucK\nexperience does most of the conceptual work. If you want to keep writing music as code,\nSuperCollider is the deeper language with the larger community. If you liked the DSP\nitself more than the sequencing, Faust compiles to C++, WASM and plugin formats, and\nthere's FaucK, which lets you write Faust inside ChucK.\n\nAnd ChucK stays useful even after you've moved on. It's the fastest way I know to test\nwhether an idea for a rhythm or a synth voice is any good, before committing a weekend to\nbuilding it properly in C++.\n\nThat's the series. You started with a program that couldn't do anything until you told\ntime to move, and ended with a multi-track groovebox you can rewrite while it plays. Go\nadd something to it: a snare with a bit of swing, a bassline that follows the kick, a\nfilter that opens across eight bars. That's the fun part and it's yours now.\n\nThanks for following along, and see you in a different one. Till then, have fun coding\nmusic.\n\n---\n\n## APPENDIX: verification status\n\nBuilt and run against ChucK `1.5.5.9-dev (chai)` compiled from `github.com/ccrma/chuck`,\nusing the RtAudio dummy backend and `chuck --silent`, so examples were executed with no\naudio hardware.\n\n| Chapter | Status |\n|---|---|\n| 00–04 | All blocks executed. Outputs shown are real. |\n| 05–09 | All blocks executed. Outputs shown are real. |\n| 10 | OSC executed. **MIDI compiled but not run**: no MIDI backend in the test container. |\n| 11 | Executed; `WvOut2` produced a valid 48kHz stereo WAV. |\n| 12 | Prose only, no ChucK code. |\n\nBlocks marked `verified=true` in their info string ran exactly as written. Blocks with no\n`verified` flag are composed from verified pieces but were not run as a unit (mostly the\n\"drop it into the tracks\" variants that depend on `clock`, `tick` and `stepCount` from\nearlier chapters being present in the same file."
+      }
+    ],
+    "yaml": {
+      "part": "three",
+      "eyebrow": "Episode 12",
+      "prev": "11",
+      "next": "null"
+    }
+  }
+]

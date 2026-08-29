@@ -30,7 +30,7 @@ export default function MuteToggle() {
       onClick={() => toggleMuted()}
       aria-label={muted ? "Unmute" : "Mute"}
       aria-pressed={muted}
-      className="fixed top-4 left-4 z-[9998] grid place-items-center h-10 w-10 text-[#f0c987] hover:text-[#89bd9e] transition-colors"
+      className="fixed top-4 right-4 z-[9998] grid place-items-center h-10 w-10 text-[#f0c987] hover:text-[#89bd9e] transition-colors"
     >
       {/* grain background, clipped to the button box (frame overshoot stays) */}
       <span className="pointer-events-none absolute inset-0 -z-10 overflow-hidden bg-[#1a0a18]/50">
