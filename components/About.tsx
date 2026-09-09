@@ -172,7 +172,7 @@ function About() {
 
   return (
     <div className="w-full flex flex-col items-center mt-4 border-b border-[#8b1e3f] pb-4">
-      <span className={`${meine.className} text-4xl mb-4`}>About Me </span>
+      <h2 className={`${meine.className} text-4xl mb-4`}>About Me </h2>
 
       {/* Single shared audio source for both the in-card and floating players. */}
       <audio ref={audioRef} src={SONG_SRC} preload="metadata" />

@@ -413,11 +413,11 @@ export default function Home() {
                       </div>
                       <div className="relative z-10">
                         {/* Base name */}
-                        <p
+                        <h1
                           className={`whitespace-nowrap text-3xl sm:text-5xl md:text-6xl text-[#89bd9e] ${meine.className}`}
                         >
                           Harshit Kashyap Sarma
-                        </p>
+                        </h1>
                         {/* Recolored copy, clipped to just the centered band that
                           sits over the pfp (pfp is 160px wide → 80px each side
                           of center). Change text-[...] to recolor only this part. */}
@@ -434,12 +434,12 @@ export default function Home() {
                         ></Image>
 
                       </div>
-                      <p
+                      <h2
                         className={`text-base sm:text-lg md:text-xl text-center text-[#89bd9e] mt-4 ${jim.className} font-bold`}
                       >
                         {" "}
                         Audio Technology / Full Stack / AI-ML
-                      </p>
+                      </h2>
                     </div>
                     <div className={`${spco.className} `}>
                       <TechStack />

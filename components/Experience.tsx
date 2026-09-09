@@ -12,7 +12,7 @@ function Experience() {
   return (
     <div className="w-full flex flex-col items-center mt-4
 border-b  border-[#8b1e3f]">
-      <span className={`${meine.className} text-4xl mb-4`}>Experience </span>
+      <h2 className={`${meine.className} text-4xl mb-4`}>Experience </h2>
       {experience.map((exp) => (
         <ExperienceCard key={exp.company} {...exp} />
       ))}

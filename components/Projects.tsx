@@ -18,7 +18,7 @@ function Projects() {
     <div
       className={` mt-4 w-full flex flex-col items-center border-b  border-[#8b1e3f] pb-4`}
     >
-      <span className={`${meine.className} text-4xl mb-4`}>Projects </span>
+      <h2 className={`${meine.className} text-4xl mb-4`}>Projects </h2>
       {projects.map((project) => (
         <Project key={project.title} {...project} />
       ))}

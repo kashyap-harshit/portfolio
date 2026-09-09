@@ -11,7 +11,7 @@ const meine = Arizonia({
 function Education() {
   return (
     <div className="w-full flex flex-col items-center mt-4 border-b border-[#8b1e3f] pb-4">
-      <span className={`${meine.className} text-4xl mb-4`}>Education </span>
+      <h2 className={`${meine.className} text-4xl mb-4`}>Education </h2>
       {education.map((edu) => (
         <EducationCard key={edu.institution} {...edu} />
       ))}
