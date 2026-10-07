@@ -23,6 +23,7 @@ import RandomFact from "@/components/RandomFact";
 import About from "@/components/About";
 import Education from "@/components/Education";
 import Projects from "@/components/Projects";
+import OpenSource from "@/components/OpenSource";
 import Experience from "@/components/Experience";
 import Blogs from "@/components/Blogs";
 import TicTacToeFrame, { HASH_OVERSHOOT } from "@/components/TicTacToeFrame";
@@ -55,6 +56,7 @@ const meine = Arizonia({
 const sections = [
   { id: "about", label: "ABOUT" },
   { id: "first", label: "PROJECTS" },
+  { id: "opensource", label: "OPEN SOURCE" },
   { id: "second", label: "EXPERIENCE" },
   { id: "third", label: "EDUCATION" },
   { id: "fourth", label: "BLOGS" },
@@ -494,6 +496,9 @@ export default function Home() {
             </div>
             <div id="first">
               <Projects />
+            </div>
+            <div id="opensource">
+              <OpenSource />
             </div>
             <div id="second">
               <Experience />

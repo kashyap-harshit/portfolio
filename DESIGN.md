@@ -226,13 +226,35 @@ no build-time fetching.** To update content, edit the TypeScript files directly.
 }
 ```
 
+#### `OpenSourcePRData` (`data/opensource.ts`)
+```typescript
+{
+  repo: string;
+  repoUrl: string;
+  prNumber: number;
+  prUrl: string;
+  title: string;
+  status: "merged" | "open" | "closed";
+  mergedDate: string;
+  diff: { additions: number; deletions: number };
+  organization: string;
+  logo?: string;
+  summary: string;       // Supports **bold**, `code` via rich()
+  highlights: string[];  // Supports **bold**, `code` via rich()
+  techStack: string[];   // Drives TechHoverContext highlighting
+  issueUrl?: string;
+  issueNumber?: number;
+}
+```
+
 ### Content Rendering
 
-Markdown-like inline formatting in `highlights`, `description`, and `excerpt`
+Markdown-like inline formatting in `highlights`, `description`, `summary`, and `excerpt`
 fields is parsed at render time by the `rich()` function (`components/rich.tsx`):
 
 | Syntax | Output |
 |---|---|
+| `` `code` `` | `<code className="...">code</code>` |
 | `**text**` | `<b>text</b>` |
 | `*text*` | `<i>text</i>` |
 | `__text__` | `<u>text</u>` |
@@ -247,6 +269,7 @@ fields is parsed at render time by the `rich()` function (`components/rich.tsx`)
 |---|---|---|---|
 | `About` | Hardcoded | — | Bio, song player, social links |
 | `Projects` | `data/projects.ts` | `Project` | Project cards + "More Projects" link |
+| `OpenSource` | `data/opensource.ts` | `OpenSourceCard` | Upstream PR inspection cards + GitHub links |
 | `Experience` | `data/experience.ts` | `ExperienceCard` | Work entries with tech stacks |
 | `Education` | `data/education.ts` | `EducationCard` | Degree entries with course projects |
 | `Blogs` | `data/blogs.ts` | `BlogCard` | Blog/series cards |
