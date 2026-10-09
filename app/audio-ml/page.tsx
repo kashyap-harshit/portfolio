@@ -13,6 +13,8 @@ import LearningRateSimulator from "@/components/audioml/LearningRateSimulator";
 import SigmoidClassifierWidget from "@/components/audioml/SigmoidClassifierWidget";
 import OneVsAllWidget from "@/components/audioml/OneVsAllWidget";
 import NeuralAudioWidget from "@/components/audioml/NeuralAudioWidget";
+import CodeHighlighter from "@/components/audioml/CodeHighlighter";
+import { SiPython } from "react-icons/si";
 
 const jim = Cinzel({ weight: "600", subsets: ["latin"] });
 const caveat = Quicksand({ weight: "400", subsets: ["latin"] });
@@ -27,6 +29,13 @@ function TextBlock({ content }: { content: string }) {
         components={{
           code({ inline, children, ...props }: any) {
             const rawText = String(children);
+            if (!inline && rawText.includes("\n")) {
+              return (
+                <div className="my-4 rounded border border-[#8b1e3f]/40 bg-[#100511] overflow-hidden">
+                  <CodeHighlighter code={rawText.trim()} />
+                </div>
+              );
+            }
             return (
               <code
                 className={`${
@@ -82,15 +91,18 @@ function PythonCodeBlock({ content, meta }: { content: string; meta?: any }) {
   return (
     <div className="relative isolate w-full mb-8 mt-4">
       <TicTacToeFrame />
-      <div className="relative overflow-hidden isolate bg-[#8b1e3f]/10">
+      <div className="relative overflow-hidden isolate bg-[#100511] border border-[#8b1e3f]/60 rounded-sm">
         <div className="relative z-10">
           <div className="bg-[#8b1e3f]/30 px-4 py-2 flex justify-between items-center border-b-2 border-[#8b1e3f]">
-            <span className={`${jim.className} text-[#f0c987] text-sm`}>
-              {meta?.file || "algorithm.py"}
-            </span>
+            <div className="flex items-center gap-2">
+              <SiPython className="text-[#f0c987] text-base" />
+              <span className={`${jim.className} text-[#f0c987] text-sm font-semibold`}>
+                {meta?.file || "audiosense.py"}
+              </span>
+            </div>
             <div className="flex items-center gap-4">
               {meta?.verified && (
-                <div className="flex items-center gap-1.5 text-[#89bd9e] text-xs">
+                <div className="flex items-center gap-1.5 text-[#27C93F] text-xs">
                   <CheckCircle2 size={12} />
                   <span className={caveat.className}>Verified in NumPy</span>
                 </div>
@@ -105,9 +117,7 @@ function PythonCodeBlock({ content, meta }: { content: string; meta?: any }) {
               </button>
             </div>
           </div>
-          <pre className="p-4 overflow-x-auto text-[#89bd9e] text-sm font-mono whitespace-pre leading-relaxed">
-            {content}
-          </pre>
+          <CodeHighlighter code={content} />
         </div>
       </div>
     </div>
