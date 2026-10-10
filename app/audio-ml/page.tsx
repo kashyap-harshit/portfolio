@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import data from "./audioml.json";
-import { Menu, X, CheckCircle2, Copy, ArrowLeft } from "lucide-react";
+import { Menu, X, CheckCircle2, Copy, ArrowLeft, Database } from "lucide-react";
 import Link from "next/link";
 import TicTacToeFrame from "@/components/TicTacToeFrame";
 import { Cinzel, Quicksand, Arizonia } from "next/font/google";
@@ -280,6 +280,50 @@ function ChangedBlock({ content }: { content: string }) {
   );
 }
 
+function SourceBlock({ content, meta }: { content: string; meta?: any }) {
+  return (
+    <div className="relative isolate w-full mb-8 mt-4">
+      <div className="relative overflow-hidden isolate bg-[#1a0a18] border-2 border-[#8b1e3f] p-5 rounded-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-3 border-b border-[#8b1e3f]/40 gap-2">
+          <div className="flex items-center gap-2.5">
+            <Database size={16} className="text-[#f0c987]" />
+            <span className={`${jim.className} text-[#f0c987] text-base uppercase tracking-wider font-semibold`}>
+              {meta?.title || "Dataset & Audio Source"}
+            </span>
+          </div>
+          {meta?.badge && (
+            <span className="self-start sm:self-auto px-2.5 py-0.5 rounded text-xs font-mono bg-[#8b1e3f]/30 border border-[#8b1e3f] text-[#89bd9e]">
+              {meta.badge}
+            </span>
+          )}
+        </div>
+        <div className={`${caveat.className} text-[#89bd9e] text-lg leading-relaxed [&_a]:text-[#f0c987] [&_a]:underline [&_strong]:text-[#f0c987]`}>
+          <ReactMarkdown
+            components={{
+              code({ inline, children, ...props }: any) {
+                return (
+                  <code
+                    className={`${
+                      inline
+                        ? "bg-[#8b1e3f]/30 text-[#f0c987] px-1.5 py-0.5 rounded text-sm border border-[#8b1e3f] font-mono"
+                        : "font-mono"
+                    }`}
+                    {...props}
+                  >
+                    {children}
+                  </code>
+                );
+              },
+            }}
+          >
+            {content}
+          </ReactMarkdown>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AudioMLPage() {
   const [activeChapter, setActiveChapter] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -479,6 +523,8 @@ export default function AudioMLPage() {
                   return <NoteBlock key={idx} content={block.content} />;
                 case "changed":
                   return <ChangedBlock key={idx} content={block.content} />;
+                case "source":
+                  return <SourceBlock key={idx} content={block.content} meta={block.meta} />;
                 case "widget":
                   if (block.content === "contour") {
                     return <ContourVisualizer key={idx} />;
