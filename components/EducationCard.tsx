@@ -23,6 +23,7 @@ function EducationCard({
   period,
   highlights,
   projects,
+  courses,
   logo,
 }: EducationData) {
   return (
@@ -58,16 +59,44 @@ function EducationCard({
             </span>
           </div>
 
-          <ul
-            className={`${caveat.className} border-t-2 border-[#8b1e3f] p-2 text-sm flex flex-col gap-1.5`}
-          >
-            {highlights.map((h, i) => (
-              <li key={i} className="flex gap-2">
-                <span className="text-[#8b1e3f] select-none">#</span>
-                <span>{rich(h)}</span>
-              </li>
-            ))}
-          </ul>
+          {highlights && highlights.length > 0 && (
+            <ul
+              className={`${caveat.className} border-t-2 border-[#8b1e3f] p-2 text-sm flex flex-col gap-1.5`}
+            >
+              {highlights.map((h, i) => (
+                <li key={i} className="flex gap-2">
+                  <span className="text-[#8b1e3f] select-none">#</span>
+                  <span>{rich(h)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {courses && courses.length > 0 && (
+            <div
+              className={`${caveat.className} border-t-2 border-[#8b1e3f] p-2 text-sm flex flex-col gap-1.5`}
+            >
+              <b className="text-[#f0c987]">Current Coursework</b>
+              {courses.map((c, i) => (
+                <div key={i} className="flex gap-2">
+                  <span className="text-[#8b1e3f] select-none">›</span>
+                  <span>
+                    <b>{c.name}</b>: {rich(c.description)}
+                    {c.syllabusUrl && (
+                      <a
+                        href={c.syllabusUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ml-1.5 text-xs text-[#f0c987] underline underline-offset-2 hover:text-[#ffd99f] transition-colors"
+                      >
+                        [syllabus]
+                      </a>
+                    )}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
 
           {projects && projects.length > 0 && (
             <div
@@ -91,3 +120,4 @@ function EducationCard({
 }
 
 export default EducationCard;
+

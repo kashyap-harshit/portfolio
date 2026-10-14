@@ -60,6 +60,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Skip notifications when running locally (e.g. via pnpm on localhost)
+    const host = req.headers.get("host") || "";
+    if (
+      process.env.NODE_ENV === "development" ||
+      host.includes("localhost") ||
+      host.includes("127.0.0.1")
+    ) {
+      return NextResponse.json({ success: true, skipped: "local_dev" });
+    }
+
     const body = await req.json().catch(() => ({}));
     const {
       event = "page_view",

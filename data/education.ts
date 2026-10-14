@@ -5,6 +5,7 @@ export type EducationData = {
   period: string;
   highlights: string[];
   projects?: { name: string; description: string }[];
+  courses?: { name: string; description: string; syllabusUrl?: string }[];
   logo?: string;
 };
 
@@ -15,8 +16,28 @@ export const education: EducationData[] = [
     location: "Barcelona, Spain",
     period: "2026 – Present",
     logo: "/upf.png",
-    highlights: [
-      "To Be Started"
+    highlights: [],
+    courses: [
+      {
+        name: "Digital Signal Processing for Sound and Music",
+        description:
+          "Signal processing methodologies and technologies specific for audio and music applications, emphasizing **spectral processing techniques** for sound description and transformation.",
+        syllabusUrl:
+          "https://www.upf.edu/web/smc/digital-signal-processing-for-sound-and-music",
+      },
+      {
+        name: "Machine Learning for Sound and Music",
+        description:
+          "Foundational machine learning concepts and current **deep learning architectures** applied to sound and music analysis and generation.",
+        syllabusUrl:
+          "https://www.upf.edu/web/smc/machine-learning-for-sound-and-music",
+      },
+      {
+        name: "Music Perception and Cognition",
+        description:
+          "Empirical and computational foundations of **psychoacoustics, neural encoding of sound**, auditory stream organization, musical memory, and cognitive modeling.",
+        syllabusUrl: "https://www.upf.edu/web/smc/academic-program",
+      },
     ],
   },
   {

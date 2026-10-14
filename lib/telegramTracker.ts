@@ -5,8 +5,19 @@
 // Simple in-memory debounce cache for rapid clicks
 const eventCooldown = new Map<string, number>();
 
+function isLocalhost(): boolean {
+  if (typeof window === "undefined") return false;
+  const host = window.location.hostname;
+  return (
+    process.env.NODE_ENV === "development" ||
+    host === "localhost" ||
+    host === "127.0.0.1" ||
+    host.endsWith(".local")
+  );
+}
+
 export async function trackPageView() {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || isLocalhost()) return;
 
   // Avoid sending duplicate "new visitor" alerts on simple reloads in the same session
   try {
@@ -46,7 +57,7 @@ export async function trackPageView() {
 }
 
 export async function trackCustomEvent(title: string, details?: string) {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || isLocalhost()) return;
 
   // Prevent double-triggering the same event within 3 seconds
   const key = `${title}:${details || ""}`;

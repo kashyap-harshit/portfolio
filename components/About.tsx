@@ -194,9 +194,8 @@ function About() {
               I&apos;m Harshit, an <b>audio-tech and full-stack engineer</b> who
               likes living where <b>DSP meets machine learning</b>. I build
               synths and VST plugins, ship multi-tenant backends, and train
-              models for security and sound. Right now I&apos;m heading to{" "}
-              <b>UPF Barcelona</b> for a Master&apos;s in{" "}
-              <b>Sound &amp; Music Computing</b>.
+              models for security and sound. Currently pursuing a Master&apos;s
+              in <b>Sound &amp; Music Computing</b> at <b>UPF Barcelona</b>.
             </p>
 
             {/* Bottom: song player (left) + links (right) */}
