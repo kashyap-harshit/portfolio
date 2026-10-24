@@ -56,7 +56,7 @@ const meine = Arizonia({
 const sections = [
   { id: "about", label: "ABOUT" },
   { id: "first", label: "PROJECTS" },
-  { id: "opensource", label: "OPEN SOURCE" },
+  { id: "research", label: "RESEARCH" },
   { id: "second", label: "EXPERIENCE" },
   { id: "third", label: "EDUCATION" },
   { id: "fourth", label: "BLOGS" },
@@ -497,7 +497,7 @@ export default function Home() {
             <div id="first">
               <Projects />
             </div>
-            <div id="opensource">
+            <div id="research">
               <OpenSource />
             </div>
             <div id="second">

@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useRef } from 'react';
 import { Renderer, Program, Mesh, Color, Triangle } from 'ogl';
+import { getAudioBands } from '@/lib/audioVisualizer';
 
 const VERT = `#version 300 es
 in vec2 position;
@@ -119,7 +120,9 @@ interface AuroraProps {
 export default function Aurora(props: AuroraProps) {
   const { colorStops = ['#5227FF', '#7cff67', '#5227FF'], amplitude = 1.0, blend = 0.5 } = props;
   const propsRef = useRef<AuroraProps>(props);
-  propsRef.current = props;
+  useEffect(() => {
+    propsRef.current = props;
+  });
 
   const ctnDom = useRef<HTMLDivElement>(null);
 
@@ -144,33 +147,6 @@ export default function Aurora(props: AuroraProps) {
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     gl.canvas.style.backgroundColor = 'transparent';
 
-    let program: Program | undefined;
-
-    // On phones/reduced-motion we draw a single static frame instead of an
-    // animation loop, so any resize must re-draw it — otherwise a bad initial
-    // size (0 while layout settles) leaves the background permanently blank.
-    const staticMode = prefersReduced || isMobile;
-    const renderStatic = () => {
-      if (program) renderer.render({ scene: mesh });
-    };
-
-    function resize() {
-      if (!ctn) return;
-      const width = ctn.offsetWidth;
-      const height = ctn.offsetHeight;
-      if (!width || !height) return;
-      renderer.setSize(width, height);
-      if (program) {
-        program.uniforms.uResolution.value = [width, height];
-        if (staticMode) renderStatic();
-      }
-    }
-    window.addEventListener('resize', resize);
-    // Re-run resize (and, in static mode, re-render) whenever the container
-    // actually gets/changes size — this wins the initial-layout race on mobile.
-    const ro = new ResizeObserver(() => resize());
-    ro.observe(ctn);
-
     const geometry = new Triangle(gl);
     if (geometry.attributes.uv) {
       delete geometry.attributes.uv;
@@ -181,7 +157,7 @@ export default function Aurora(props: AuroraProps) {
       return [c.r, c.g, c.b];
     });
 
-    program = new Program(gl, {
+    const program = new Program(gl, {
       vertex: VERT,
       fragment: FRAG,
       uniforms: {
@@ -196,6 +172,29 @@ export default function Aurora(props: AuroraProps) {
     const mesh = new Mesh(gl, { geometry, program });
     ctn.appendChild(gl.canvas);
 
+    // On phones/reduced-motion we draw a single static frame instead of an
+    // animation loop, so any resize must re-draw it — otherwise a bad initial
+    // size (0 while layout settles) leaves the background permanently blank.
+    const staticMode = prefersReduced || isMobile;
+    const renderStatic = () => {
+      renderer.render({ scene: mesh });
+    };
+
+    function resize() {
+      if (!ctn) return;
+      const width = ctn.offsetWidth;
+      const height = ctn.offsetHeight;
+      if (!width || !height) return;
+      renderer.setSize(width, height);
+      program.uniforms.uResolution.value = [width, height];
+      if (staticMode) renderStatic();
+    }
+    window.addEventListener('resize', resize);
+    // Re-run resize (and, in static mode, re-render) whenever the container
+    // actually gets/changes size — this wins the initial-layout race on mobile.
+    const ro = new ResizeObserver(() => resize());
+    ro.observe(ctn);
+
     resize();
 
     let animateId = 0;
@@ -204,15 +203,41 @@ export default function Aurora(props: AuroraProps) {
     // staying smooth enough for a background.
     const frameInterval = isMobile ? 1000 / 30 : 0;
     let lastRender = 0;
+    let currentAmp = propsRef.current.amplitude ?? 1.0;
+    let currentBlend = propsRef.current.blend ?? blend;
+    let audioTime = 0;
+    let lastTime = performance.now();
+
     const update = (t: number) => {
       animateId = requestAnimationFrame(update);
       if (frameInterval && t - lastRender < frameInterval) return;
       lastRender = t;
-      const { time = t * 0.01, speed = 1.0 } = propsRef.current;
+
+      const now = performance.now();
+      const dt = Math.min((now - lastTime) * 0.001, 0.1);
+      lastTime = now;
+
+      const { speed = 1.0 } = propsRef.current;
+      const bands = getAudioBands();
+
+      // Audio-reactive amplitude: bass frequencies push wave heights upward smoothly
+      const baseAmp = propsRef.current.amplitude ?? 1.0;
+      const targetAmp = baseAmp + (bands.bass * 1.8 + bands.overall * 0.7);
+      currentAmp += (targetAmp - currentAmp) * 0.15;
+
+      // Audio-reactive color blend: mid-frequencies shift the color ramp
+      const baseBlend = propsRef.current.blend ?? blend;
+      const targetBlend = baseBlend + bands.mid * 0.35;
+      currentBlend += (targetBlend - currentBlend) * 0.15;
+
+      // Accelerate shader movement smoothly when audio energy is high
+      const energyMultiplier = 1.0 + bands.overall * 1.2;
+      audioTime += dt * speed * energyMultiplier;
+
       if (program) {
-        program.uniforms.uTime.value = time * speed * 0.1;
-        program.uniforms.uAmplitude.value = propsRef.current.amplitude ?? 1.0;
-        program.uniforms.uBlend.value = propsRef.current.blend ?? blend;
+        program.uniforms.uTime.value = audioTime * 0.1;
+        program.uniforms.uAmplitude.value = currentAmp;
+        program.uniforms.uBlend.value = currentBlend;
         // colorStops are static here; the uniform is set once at init, so we no
         // longer reallocate Color objects every frame.
         renderer.render({ scene: mesh });

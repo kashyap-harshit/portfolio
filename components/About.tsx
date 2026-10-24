@@ -10,6 +10,7 @@ import { FaLinkedin, FaGithub } from "react-icons/fa";
 import { FiFileText } from "react-icons/fi";
 import { GITHUB_PROFILE } from "@/data/projects";
 import { trackCustomEvent } from "@/lib/telegramTracker";
+import { initAudioSource, resumeAudioContext } from "@/lib/audioVisualizer";
 
 const meine = Arizonia({ subsets: ["latin"], weight: "400" });
 const caveat = Quicksand({ subsets: ["latin"], weight: "400" });
@@ -147,21 +148,37 @@ function About() {
     return () => clearInterval(id);
   }, [showWarning]);
 
+  // Initialize audio visualizer graph once audio element is ready
+  useEffect(() => {
+    if (audioRef.current) {
+      initAudioSource(audioRef.current);
+    }
+  }, []);
+
   // Keep the shared <audio> element in sync with the global mute toggle.
   useEffect(() => {
     if (audioRef.current) audioRef.current.muted = muted;
   }, [muted]);
 
   const acceptPlay = () => {
-    audioRef.current?.play().catch(() => {});
+    resumeAudioContext();
+    if (audioRef.current) {
+      initAudioSource(audioRef.current);
+      audioRef.current.play().catch(() => {});
+    }
     setShowWarning(false);
   };
 
   const toggle = () => {
     const a = audioRef.current;
     if (!a) return;
-    if (a.paused) a.play();
-    else a.pause();
+    if (a.paused) {
+      resumeAudioContext();
+      initAudioSource(a);
+      a.play().catch(() => {});
+    } else {
+      a.pause();
+    }
   };
 
   const seek = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -234,7 +251,7 @@ function About() {
           left) while playing and scrolled past the card, lingers 5s after a
           pause, then fades away. Sits on the same level as the mute button. */}
       <div
-        className={`fixed top-4 left-20 z-50 flex h-10 items-center transition-all duration-200 ease-linear ${
+        className={`fixed top-6 left-20 z-50 flex h-10 items-center transition-all duration-200 ease-linear ${
           floatingShown
             ? "opacity-100 translate-y-0 pointer-events-auto"
             : "opacity-0 -translate-y-24 pointer-events-none"

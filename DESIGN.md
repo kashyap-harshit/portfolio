@@ -110,8 +110,8 @@ portfolio/
 │   ├── ExperienceCard.tsx        # Individual experience entry card (tech hover integration)
 │   ├── MuteToggle.tsx            # Fixed top-left mute/unmute button
 │   ├── Noise.tsx                 # Canvas-based procedural film grain overlay
-│   ├── OpenSource.tsx            # Open source section — maps data/opensource.ts → OpenSourceCard
-│   ├── OpenSourceCard.tsx        # Individual open source PR inspection card
+│   ├── OpenSource.tsx            # Research section (MTG UPF lab work) — maps data/opensource.ts → OpenSourceCard
+│   ├── OpenSourceCard.tsx        # Individual research contribution & PR inspection card
 │   ├── Pfp.tsx                   # Profile picture with progressive gif loading
 │   ├── Project.tsx               # Individual project card (tech hover integration)
 │   ├── Projects.tsx              # Projects section — maps data/projects.ts → Project
@@ -132,10 +132,11 @@ portfolio/
 │   ├── blogs.ts                  # BlogData[] — blog posts and series
 │   ├── education.ts              # EducationData[] — degrees, courses and projects
 │   ├── experience.ts             # ExperienceData[] — work experience entries
-│   ├── opensource.ts             # OpenSourcePRData[] — upstream open source contributions
+│   ├── opensource.ts             # OpenSourcePRData[] — MTG / UPF research lab contributions
 │   └── projects.ts               # ProjectData[] — featured projects + GITHUB_PROFILE constant
 │
 ├── lib/
+│   ├── audioVisualizer.ts        # Web Audio API bridge: AnalyserNode, frequency bands & waveform data
 │   ├── telegramTracker.ts        # Client-side helpers: trackPageView(), trackCustomEvent()
 │   └── utils.ts                  # cn() — clsx + tailwind-merge
 │
@@ -180,7 +181,7 @@ layout.tsx (Server Component)
                     └── Right: Scrollable Content
                           ├── #about        → About
                           ├── #first        → Projects
-                          ├── #opensource   → OpenSource
+                          ├── #research     → OpenSource (Research Contributions)
                           ├── #second       → Experience
                           ├── #third        → Education
                           └── #fourth       → Blogs
@@ -319,7 +320,7 @@ fields is parsed at render time by the `rich()` function (`components/rich.tsx`)
 |---|---|---|---|
 | `About` | Hardcoded | — | Bio, song player, social links |
 | `Projects` | `data/projects.ts` | `Project` | Project cards + "More Projects" link |
-| `OpenSource` | `data/opensource.ts` | `OpenSourceCard` | Upstream PR inspection cards + GitHub links |
+| `OpenSource` | `data/opensource.ts` | `OpenSourceCard` | Research contributions (MTG / UPF) + PR inspection cards |
 | `Experience` | `data/experience.ts` | `ExperienceCard` | Work entries with tech stacks |
 | `Education` | `data/education.ts` | `EducationCard` | Degree entries, course syllabi & projects |
 | `Blogs` | `data/blogs.ts` | `BlogCard` | Blog/series cards |
@@ -370,7 +371,7 @@ These specialized widgets power the interactive lessons on `/audio-ml`:
 | `TicTacToeFrame` | Decorative `#` border; static or pulsing; exported `HASH_OVERSHOOT` for GSAP |
 | `Noise` | Canvas film grain; drawn once, animated by CSS `transform` jumps |
 | `StarBorder` | Animated glowing border wrapper; `active` prop toggles visibility |
-| `SongPlayer` | Presentational audio controls (play/pause, seek); state owned by parent |
+| `SongPlayer` | Real-time canvas oscilloscope waveform visualizer with live audio oscillations & seek controls |
 | `Pfp` | Progressive image: static poster → animated gif fade-in |
 | `RandomFact` | Fetches random trivia from `uselessfacts.jsph.pl` API |
 | `rich()` | Inline markdown → React nodes parser |
@@ -382,7 +383,7 @@ These specialized widgets power the interactive lessons on `/audio-ml`:
 The visual stack renders bottom to top:
 
 ```
-z: -50   Aurora.tsx       WebGL animated aurora gradient (OGL, simplex noise)
+z: -50   Aurora.tsx       WebGL animated aurora gradient (OGL, simplex noise) + audio-reactive
 z: auto  Noise.tsx        Canvas grain (per-card or full-screen), CSS animated
 z: auto  TicTacToeFrame   Absolute-positioned border lines with corner overshoot
 z: auto  StarBorder       Animated radial gradient glow on tech badges
@@ -395,6 +396,11 @@ z: 10000 SnareCursor      Drum cursor (hides inside reticle zone)
 
 - Custom GLSL fragment shader with **simplex noise** driving a scrolling aurora
 - Three configurable color stops blended along a ramp
+- **Audio-Reactive Engine (Desktop):** Live Web Audio `AnalyserNode` frequency bands modulate uniforms in real time:
+  - **Bass:** Drives `uAmplitude` upward with exponential smoothing (reacts to drums/low-end punch)
+  - **Mids:** Shifts `uBlend` to modulate color distribution with melody and vocals
+  - **Overall Energy:** Accelerates shader time movement (`uTime`) dynamically
+  - **Smooth Decay:** On pause/stop, all uniforms smoothly relax back to resting baselines
 - **Mobile/reduced-motion:** Renders a single static frame; no animation loop
 - **Mobile:** Antialiasing disabled, DPR forced to 1, throttled to 30fps
 - Cleanup: WebGL context properly lost on unmount
@@ -434,10 +440,17 @@ muteStore.ts (window.__muteStore)
   ├── setMuted(bool)     ← write + persist to localStorage("site-muted")
   └── toggleMuted()      ← convenience toggle
 
+lib/audioVisualizer.ts (Web Audio API Bridge)
+  ├── initAudioSource(el)  ← connects <audio> to AudioContext + AnalyserNode
+  ├── getTimeDomainData()  ← feeds real-time waveform buffer to SongPlayer oscilloscope
+  └── getAudioBands()      ← extracts [bass, mid, treble, overall] for Aurora WebGL
+
 Consumers:
   ├── MuteToggle.tsx     ← toggles state, restores from localStorage on mount
   ├── SnareCursor.tsx    ← checks getMuted() before playing snare.wav
-  └── About.tsx          ← keeps <audio>.muted in sync with useMuted()
+  ├── About.tsx          ← manages <audio> element, inits visualizer graph
+  ├── SongPlayer.tsx     ← renders real-time 60fps canvas oscilloscope
+  └── Aurora.tsx         ← queries getAudioBands() every frame for shader reactivity
 ```
 
 ### Why `window.__muteStore`?
@@ -741,7 +754,7 @@ pnpm lint    # Run ESLint
 ### Adding New Content
 
 1. **New project:** Add entry to `data/projects.ts` → `ProjectData[]`
-2. **New open source contribution:** Add entry to `data/opensource.ts` → `OpenSourcePRData[]`
+2. **New research contribution:** Add entry to `data/opensource.ts` → `OpenSourcePRData[]`
 3. **New experience:** Add entry to `data/experience.ts` → `ExperienceData[]`
 4. **New education:** Add entry to `data/education.ts` → `EducationData[]`
 5. **New blog:** Add entry to `data/blogs.ts` → `BlogData[]`

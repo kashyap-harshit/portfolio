@@ -93,11 +93,11 @@ function OpenSourceCard({
               {isPrivate ? (
                 <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-semibold bg-[#f0c987]/15 text-[#f0c987] border border-[#f0c987]/40 font-mono">
                   <FiLock className="h-2.5 w-2.5 shrink-0" />
-                  PRIVATE
+                  MTG LAB REPO
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-semibold bg-[#89bd9e]/15 text-[#89bd9e] border border-[#89bd9e]/40 font-mono">
-                  PUBLIC
+                  PUBLIC LAB REPO
                 </span>
               )}
               <span className="inline-flex items-center gap-1 text-[11px] font-mono px-1.5 py-0.5 rounded bg-black/40 border border-[#8b1e3f]/50">
@@ -163,7 +163,7 @@ function OpenSourceCard({
             >
               {isPrivate && <FiLock className="shrink-0 text-xs" />}
               <span>
-                View PR #{prNumber} {isPrivate ? "(Private)" : ""}
+                View PR #{prNumber} {isPrivate ? "(Lab Collaborators)" : ""}
               </span>
               <FiExternalLink className="shrink-0" />
             </Link>
@@ -185,7 +185,7 @@ function OpenSourceCard({
               className="inline-flex items-center gap-1 text-[#89bd9e] hover:text-[#f0c987] underline underline-offset-4 transition-colors text-xs sm:text-sm"
             >
               {isPrivate && <FiLock className="shrink-0 text-xs" />}
-              <span>{isPrivate ? "Private Repo" : "Repository"}</span>
+              <span>{isPrivate ? "MTG Private Repo" : "Repository"}</span>
               <FiExternalLink className="shrink-0" />
             </Link>
           </div>
