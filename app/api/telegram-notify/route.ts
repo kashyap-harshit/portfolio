@@ -80,7 +80,6 @@ export async function POST(req: NextRequest) {
       screenWidth,
       screenHeight,
       language,
-      isInitialVisit = true,
     } = body;
 
     const userAgent = req.headers.get("user-agent") || "Unknown";
@@ -105,7 +104,7 @@ export async function POST(req: NextRequest) {
     let message = "";
 
     const timestamp = new Date().toLocaleString("en-US", {
-      timeZone: "Asia/Kolkata", // adjust or standard UTC/Local
+      timeZone: "Europe/Madrid", // Barcelona / Spain
       dateStyle: "medium",
       timeStyle: "short",
     });
@@ -120,7 +119,7 @@ export async function POST(req: NextRequest) {
         screenWidth && screenHeight ? `📐 <b>Screen:</b> ${screenWidth}x${screenHeight}` : null,
         language ? `🌐 <b>Language:</b> ${language}` : null,
         `🔗 <b>Path:</b> <code>${path}</code>`,
-        `⏰ <b>Time:</b> ${timestamp} IST`,
+        `⏰ <b>Time:</b> ${timestamp} (Barcelona)`,
       ]
         .filter(Boolean)
         .join("\n");
@@ -133,7 +132,7 @@ export async function POST(req: NextRequest) {
         `📍 <b>Location:</b> ${locationText} ${flag}`,
         `🖥️ <b>Device:</b> ${device} (${os} • ${browser})`,
         `🔗 <b>Path:</b> <code>${path}</code>`,
-        `⏰ <b>Time:</b> ${timestamp} IST`,
+        `⏰ <b>Time:</b> ${timestamp} (Barcelona)`,
       ]
         .filter(Boolean)
         .join("\n");
@@ -159,10 +158,13 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[Telegram Notify Route Error]", error);
     return NextResponse.json(
-      { success: false, error: error?.message || "Internal server error" },
+      {
+        success: false,
+        error: error instanceof Error ? error.message : "Internal server error",
+      },
       { status: 500 }
     );
   }

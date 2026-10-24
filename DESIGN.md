@@ -1,6 +1,6 @@
 # Design Document — Harshit Kashyap Sarma's Portfolio
 
-> **Last updated:** 2026-08-29
+> **Last updated:** 2026-10-25
 >
 > This document describes the architecture, data flow, component design, and
 > conventions used throughout this codebase. It is intended for AI coding agents
@@ -14,7 +14,7 @@
 1. [Project Overview](#1-project-overview)
 2. [Tech Stack Summary](#2-tech-stack-summary)
 3. [Directory Structure](#3-directory-structure)
-4. [Architecture & Layout](#4-architecture--layout)
+4. [Architecture & Routes](#4-architecture--routes)
 5. [Data Layer](#5-data-layer)
 6. [Component Catalog](#6-component-catalog)
 7. [Visual Effects Pipeline](#7-visual-effects-pipeline)
@@ -24,25 +24,29 @@
 11. [Visitor Analytics (Telegram Tracker)](#11-visitor-analytics-telegram-tracker)
 12. [Styling & Theming](#12-styling--theming)
 13. [Performance Optimizations](#13-performance-optimizations)
-14. [Environment & Configuration](#14-environment--configuration)
-15. [Conventions & Patterns](#15-conventions--patterns)
+14. [SEO & Search Discoverability](#14-seo--search-discoverability)
+15. [Environment & Configuration](#15-environment--configuration)
+16. [Conventions & Patterns](#16-conventions--patterns)
 
 ---
 
 ## 1. Project Overview
 
-A single-page portfolio website for **Harshit Kashyap Sarma** — an audio-tech
-and full-stack engineer. The site showcases projects, work experience, education,
-and blog posts, wrapped in a highly interactive, audio-visual presentation layer
-with custom cursors, WebGL backgrounds, film grain, and sound effects.
+A portfolio website and interactive educational platform for **Harshit Kashyap Sarma** — an audio-tech
+and full-stack engineer currently based in Barcelona, Spain (M.S. in Sound and Music Computing at Universitat Pompeu Fabra). The site showcases projects, open source contributions, work experience, education, and blog posts, wrapped in a highly interactive, audio-visual presentation layer with custom cursors, WebGL backgrounds, film grain, and sound effects.
+
+In addition to the main SPA portfolio (`/`), the project also features standalone interactive learning routes:
+- **`/chuck`** — *ShredQuest*: An interactive 12-chapter textbook and live guide on building a groovebox from scratch in ChucK.
+- **`/audio-ml`** — An interactive educational deep-dive into Machine Learning for audio with custom canvas visualizers, gradient descent simulators, and dynamic LaTeX math rendering.
 
 **Key characteristics:**
-- Single-page app (SPA feel) — all content lives on `/`, scrollable right panel
+- Single-page portfolio (`/`) with split-screen desktop layout and scrollable right panel
+- Standalone rich interactive routes (`/chuck`, `/audio-ml`) with custom widgets
 - Heavy use of **GSAP** for DOM animations and timeline sequencing
 - **WebGL** backgrounds via OGL (Aurora) and Three.js (ShapeBlur)
 - Custom **dual cursor system** (snare drum + target reticle)
 - Built-in **audio player** with global mute and first-visit prompt
-- Real-time **Telegram notifications** for visitor tracking
+- Real-time **Telegram notifications** for visitor tracking (localized to Barcelona time)
 - Fully responsive — desktop is a split-screen; mobile is a single column
 
 ---
@@ -71,23 +75,43 @@ portfolio/
 ├── app/
 │   ├── api/
 │   │   └── telegram-notify/
-│   │       └── route.ts          # POST — visitor/event notifications to Telegram
+│   │       └── route.ts          # POST — visitor/event notifications to Telegram (Barcelona time)
+│   ├── audio-ml/
+│   │   ├── audioml.json          # Chapter content, formulas, code snippets & widget config
+│   │   ├── layout.tsx            # Metadata, OpenGraph & JSON-LD structured data
+│   │   └── page.tsx              # Interactive Audio ML interactive textbook & visualizers
+│   ├── chuck/
+│   │   ├── layout.tsx            # Metadata & OpenGraph for ShredQuest
+│   │   ├── page.tsx              # Interactive ChucK tutorial reader with code copy & nav
+│   │   └── shredquest.json       # 12-chapter ChucK groovebox tutorial text & code blocks
 │   ├── globals.css               # Tailwind config, custom keyframes, theme vars
-│   ├── layout.tsx                # Root layout (server component) — injects global overlays
-│   └── page.tsx                  # Main page (client component) — hero + scrollable sections
+│   ├── layout.tsx                # Root layout (server component) — injects global overlays & SEO
+│   ├── page.tsx                  # Main page (client component) — hero + scrollable sections
+│   ├── robots.ts                 # Dynamic robots.txt generation
+│   └── sitemap.ts                # Dynamic sitemap.xml generation
 │
 ├── components/
+│   ├── audioml/                  # Interactive visualizers & widgets for /audio-ml
+│   │   ├── CodeHighlighter.tsx   # Custom syntax highlighter for Python DSP code
+│   │   ├── ContourVisualizer.tsx # 2D contour plot visualizer for loss surfaces
+│   │   ├── LearningRateSimulator.tsx # Gradient descent simulation across learning rates
+│   │   ├── MathRenderer.tsx      # LaTeX / KaTeX mathematical formula renderer
+│   │   ├── NeuralAudioWidget.tsx # Spectrogram & neural network layer interactive widget
+│   │   ├── OneVsAllWidget.tsx    # Multi-class audio classifier decision boundary widget
+│   │   └── SigmoidClassifierWidget.tsx # Interactive sigmoid classifier decision boundary
 │   ├── About.tsx                 # Bio, audio player, links, first-visit modal
 │   ├── Aurora.tsx                # Full-screen WebGL aurora gradient (OGL)
 │   ├── BlogCard.tsx              # Individual blog post card (supports series stacking)
 │   ├── Blogs.tsx                 # Blog section — maps data/blogs.ts → BlogCard
 │   ├── Education.tsx             # Education section — maps data/education.ts → EducationCard
-│   ├── EducationCard.tsx         # Individual education entry card
+│   ├── EducationCard.tsx         # Individual education entry card (supports courses syllabus)
 │   ├── Events.tsx                # Placeholder (unused)
 │   ├── Experience.tsx            # Experience section — maps data/experience.ts → ExperienceCard
 │   ├── ExperienceCard.tsx        # Individual experience entry card (tech hover integration)
 │   ├── MuteToggle.tsx            # Fixed top-left mute/unmute button
 │   ├── Noise.tsx                 # Canvas-based procedural film grain overlay
+│   ├── OpenSource.tsx            # Open source section — maps data/opensource.ts → OpenSourceCard
+│   ├── OpenSourceCard.tsx        # Individual open source PR inspection card
 │   ├── Pfp.tsx                   # Profile picture with progressive gif loading
 │   ├── Project.tsx               # Individual project card (tech hover integration)
 │   ├── Projects.tsx              # Projects section — maps data/projects.ts → Project
@@ -102,26 +126,40 @@ portfolio/
 │   ├── TelegramTracker.tsx       # Headless component — fires page view on mount
 │   ├── TicTacToeFrame.tsx        # Tic-tac-toe (#) decorative border frame
 │   ├── muteStore.ts              # Global mute state (window.__muteStore, useSyncExternalStore)
-│   └── rich.tsx                  # Inline markdown parser (**bold**, *italic*, __underline__)
+│   └── rich.tsx                  # Inline markdown parser (**bold**, *italic*, `code`, __underline__)
 │
 ├── data/
 │   ├── blogs.ts                  # BlogData[] — blog posts and series
-│   ├── education.ts              # EducationData[] — degrees and course projects
+│   ├── education.ts              # EducationData[] — degrees, courses and projects
 │   ├── experience.ts             # ExperienceData[] — work experience entries
+│   ├── opensource.ts             # OpenSourcePRData[] — upstream open source contributions
 │   └── projects.ts               # ProjectData[] — featured projects + GITHUB_PROFILE constant
 │
 ├── lib/
 │   ├── telegramTracker.ts        # Client-side helpers: trackPageView(), trackCustomEvent()
 │   └── utils.ts                  # cn() — clsx + tailwind-merge
 │
-└── public/                       # Static assets (images, audio, resume, SVGs)
+├── public/                       # Static assets (images, audio, resume, SVGs)
+├── SEO.md                        # Complete SEO strategy and structured data documentation
+└── shredquest_fixed.md           # Source markdown manuscript for the ShredQuest series
 ```
 
 ---
 
-## 4. Architecture & Layout
+## 4. Architecture & Routes
 
-### Rendering Strategy
+### Route Map
+
+```
+/                Main portfolio SPA (hero + 6 content sections)
+/chuck           ShredQuest: 12-chapter interactive ChucK music programming tutorial
+/audio-ml        Interactive Machine Learning for Audio guide with live widgets
+/sitemap.xml     Dynamic search engine sitemap
+/robots.txt      Search engine crawler instructions
+/api/telegram-notify  POST API webhook for visitor & action notifications
+```
+
+### Main SPA Rendering Strategy (`/`)
 
 ```
 layout.tsx (Server Component)
@@ -140,11 +178,12 @@ layout.tsx (Server Component)
                     │     └── RandomFact (desktop footer)
                     │
                     └── Right: Scrollable Content
-                          ├── #about    → About
-                          ├── #first    → Projects
-                          ├── #second   → Experience
-                          ├── #third    → Education
-                          └── #fourth   → Blogs
+                          ├── #about        → About
+                          ├── #first        → Projects
+                          ├── #opensource   → OpenSource
+                          ├── #second       → Experience
+                          ├── #third        → Education
+                          └── #fourth       → Blogs
 ```
 
 ### Desktop vs Mobile
@@ -197,6 +236,7 @@ no build-time fetching.** To update content, edit the TypeScript files directly.
   period: string;
   highlights: string[];
   projects?: { name: string; description: string }[];
+  courses?: { name: string; description: string; syllabusUrl?: string }[];
   logo?: string;
 }
 ```
@@ -229,6 +269,7 @@ no build-time fetching.** To update content, edit the TypeScript files directly.
 #### `OpenSourcePRData` (`data/opensource.ts`)
 ```typescript
 {
+  project: string;
   repo: string;
   repoUrl: string;
   prNumber: number;
@@ -239,6 +280,9 @@ no build-time fetching.** To update content, edit the TypeScript files directly.
   diff: { additions: number; deletions: number };
   organization: string;
   logo?: string;
+  isPrivate?: boolean;
+  accessNote?: string;
+  reviewedBy?: string;
   summary: string;       // Supports **bold**, `code` via rich()
   highlights: string[];  // Supports **bold**, `code` via rich()
   techStack: string[];   // Drives TechHoverContext highlighting
@@ -246,6 +290,12 @@ no build-time fetching.** To update content, edit the TypeScript files directly.
   issueNumber?: number;
 }
 ```
+
+### Educational Content Data Files
+
+In addition to the typed arrays in `data/`, the standalone interactive tutorial routes use structured JSON manifests:
+- **`app/chuck/shredquest.json`**: Contains the full 12-chapter curriculum for ShredQuest. Each chapter defines chapter titles, narrative prose blocks (markdown), and ChucK code snippets with metadata (`file`, `verified`).
+- **`app/audio-ml/audioml.json`**: Contains audio machine learning chapters with theoretical explanations, LaTeX formulas, code listings, and parameters for embedded interactive simulation widgets.
 
 ### Content Rendering
 
@@ -271,7 +321,7 @@ fields is parsed at render time by the `rich()` function (`components/rich.tsx`)
 | `Projects` | `data/projects.ts` | `Project` | Project cards + "More Projects" link |
 | `OpenSource` | `data/opensource.ts` | `OpenSourceCard` | Upstream PR inspection cards + GitHub links |
 | `Experience` | `data/experience.ts` | `ExperienceCard` | Work entries with tech stacks |
-| `Education` | `data/education.ts` | `EducationCard` | Degree entries with course projects |
+| `Education` | `data/education.ts` | `EducationCard` | Degree entries, course syllabi & projects |
 | `Blogs` | `data/blogs.ts` | `BlogCard` | Blog/series cards |
 
 ### Card Component Pattern
@@ -289,6 +339,20 @@ Every card follows the same visual structure:
   </div>
 </div>
 ```
+
+### Interactive Educational Widgets (`components/audioml/`)
+
+These specialized widgets power the interactive lessons on `/audio-ml`:
+
+| Component | Role & Functionality |
+|---|---|
+| `ContourVisualizer.tsx` | Canvas-based 2D contour plot visualizer for loss functions and optimization paths |
+| `LearningRateSimulator.tsx` | Interactive step-by-step gradient descent simulation across adjustable learning rates ($\alpha$) |
+| `SigmoidClassifierWidget.tsx` | Interactive decision boundary visualizer with adjustable classification thresholds |
+| `OneVsAllWidget.tsx` | Multi-class audio classifier decision boundary visualizer showing 1-vs-all hyperplane partitioning |
+| `NeuralAudioWidget.tsx` | Spectrogram-to-neural-layers feature extraction simulation |
+| `CodeHighlighter.tsx` | Custom regex-based syntax highlighter for Python DSP code styled for the dark theme |
+| `MathRenderer.tsx` | LaTeX mathematical formula renderer for inline and display mathematical formulas |
 
 ### Overlay Components (layout-level)
 
@@ -511,7 +575,8 @@ Client (browser)
 Server (route.ts)
   ├── Parse User-Agent → OS, browser, device type, bot detection
   ├── Extract geo from Vercel/Cloudflare headers → country flag emoji
-  ├── Format HTML message
+  ├── Format timestamp in Barcelona local time (Europe/Madrid)
+  ├── Format HTML message with system badges & action details
   └── POST to Telegram Bot API → sendMessage to configured chat
 ```
 
@@ -519,11 +584,22 @@ Server (route.ts)
 
 | Event | Trigger | Details |
 |---|---|---|
-| `page_view` | Page mount (once per session) | Path, referrer, screen, language, location |
+| `page_view` | Page mount (once per session) | Path, referrer, screen, language, location, Barcelona time |
 | `Song Played` | Play button click | Song title |
 | `LinkedIn Clicked` | Link click | URL |
 | `GitHub Clicked` | Link click | URL |
 | `Resume Clicked` | Link click | URL |
+
+### Timestamp Localization
+
+All notification timestamps are localized on the server to **Barcelona local time** (`timeZone: "Europe/Madrid"`), reflecting Harshit's current location at UPF:
+```typescript
+const timestamp = new Date().toLocaleString("en-US", {
+  timeZone: "Europe/Madrid",
+  dateStyle: "medium",
+  timeStyle: "short",
+});
+```
 
 ### Environment Variables
 
@@ -589,7 +665,20 @@ and `.dark` (dark) tokens, but only dark is used.
 
 ---
 
-## 14. Environment & Configuration
+## 14. SEO & Search Discoverability
+
+Full documentation for search visibility is maintained in [`SEO.md`](file:///home/ronnie/stuff/personal/portfolio/SEO.md).
+
+### Core Features
+
+- **Dynamic Sitemap (`app/sitemap.ts`):** Automatically indexes canonical URLs for `/`, `/chuck`, and `/audio-ml`.
+- **Crawler Rules (`app/robots.ts`):** Allows public indexing across all crawlers, blocks internal API routes (`/api/`), and links directly to `/sitemap.xml`.
+- **OpenGraph & Twitter Cards:** Comprehensive metadata embedded in `app/layout.tsx`, `app/chuck/layout.tsx`, and `app/audio-ml/layout.tsx`.
+- **Structured Data (JSON-LD):** Implements Google Rich Snippets for `WebSite`, `Person`, `Course`, and `LearningResource`.
+
+---
+
+## 15. Environment & Configuration
 
 ### Required Files
 
@@ -613,12 +702,12 @@ pnpm lint    # Run ESLint
 
 ---
 
-## 15. Conventions & Patterns
+## 16. Conventions & Patterns
 
 ### Component Conventions
 
 - **`"use client"`** directive on all interactive components; section wrappers
-  (`Education`, `Experience`, `Blogs`) that only map data may omit it
+  (`Education`, `Experience`, `Blogs`, `OpenSource`) that only map data may omit it
 - **Google Font instances** are created at module scope (outside components) to
   avoid re-initialization
 - **`data-no-snare`** attribute on elements that should not trigger the snare
@@ -632,7 +721,8 @@ pnpm lint    # Run ESLint
 - **`data/`** — Pure data (typed arrays + type exports). No React, no side effects.
 - **`lib/`** — Framework-agnostic utilities and helpers.
 - **`components/`** — React components + the mute store + rich() parser.
-- **`app/`** — Next.js App Router pages and API routes only.
+- **`components/audioml/`** — Interactive canvas visualizers & simulators for `/audio-ml`.
+- **`app/`** — Next.js App Router pages, layouts, and API routes only.
 
 ### State Management
 
@@ -643,19 +733,22 @@ pnpm lint    # Run ESLint
 
 ### Naming
 
-- Section-level components are **singular nouns** (`Experience`, `Education`, `Blogs`)
-- Card components are suffixed with **`Card`** (`ExperienceCard`, `EducationCard`, `BlogCard`)
+- Section-level components are **singular nouns** (`Experience`, `Education`, `Blogs`, `OpenSource`)
+- Card components are suffixed with **`Card`** (`ExperienceCard`, `EducationCard`, `BlogCard`, `OpenSourceCard`)
 - Exception: `Project.tsx` (card) vs `Projects.tsx` (section)
 - Data files use **lowercase plural** names matching their section
 
 ### Adding New Content
 
 1. **New project:** Add entry to `data/projects.ts` → `ProjectData[]`
-2. **New experience:** Add entry to `data/experience.ts` → `ExperienceData[]`
-3. **New education:** Add entry to `data/education.ts` → `EducationData[]`
-4. **New blog:** Add entry to `data/blogs.ts` → `BlogData[]`
-5. **New tech badge:** Add entry to the `stack` array in `components/Techstack.tsx`
-6. **New static asset:** Drop into `/public/`, reference with leading `/`
+2. **New open source contribution:** Add entry to `data/opensource.ts` → `OpenSourcePRData[]`
+3. **New experience:** Add entry to `data/experience.ts` → `ExperienceData[]`
+4. **New education:** Add entry to `data/education.ts` → `EducationData[]`
+5. **New blog:** Add entry to `data/blogs.ts` → `BlogData[]`
+6. **New ShredQuest chapter:** Add entry to `app/chuck/shredquest.json`
+7. **New Audio ML section / widget:** Add config to `app/audio-ml/audioml.json` and widget to `components/audioml/`
+8. **New tech badge:** Add entry to the `stack` array in `components/Techstack.tsx`
+9. **New static asset:** Drop into `/public/`, reference with leading `/`
 
 ### Key Exported Constants
 
